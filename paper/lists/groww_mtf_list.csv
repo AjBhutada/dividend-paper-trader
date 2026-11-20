@@ -1,0 +1,565 @@
+symbol,slug,name,req_pct,req
+IPL,india-pesticides-ltd,India Pesticides,32.45,0.3245
+NFL,national-fertilizers-ltd,National Fertilizers,30.77,0.3077
+ADVANCE,advance-agrolife-ltd,Advance Agrolife,36.55,0.3655
+KSCL,kaveri-seed-company-ltd,Kaveri Seed Company,32.8,0.32799999999999996
+DHANUKA,dhanuka-agritech-ltd,Dhanuka Agritech,31.12,0.31120000000000003
+NACLIND,nacl-industries-ltd,NACL Industries,41.42,0.4142
+RALLIS,rallis-india-ltd,Rallis India,30.43,0.3043
+GSPCROP,gsp-crop-science-ltd,GSP Crop science,50.0,0.5
+ASTEC,astec-lifesciences-ltd,Astec Lifesciences,41.56,0.4156
+SPIC,southern-petrochemical-industries-corporation-ltd,Southern Petrochemical Industries Corporation,32.27,0.32270000000000004
+ARVINDFASN,arvind-fashions-ltd,Arvind Fashions,31.89,0.3189
+KKCL,kewal-kiran-clothing-ltd,Kewal Kiran Clothing,30.14,0.3014
+RUPA,rupa-company-ltd,Rupa & Company,31.75,0.3175
+MONTECARLO,monte-carlo-fashions-ltd,Monte Carlo Fashions,30.24,0.3024
+CANTABIL,cantabil-retail-india-ltd,Cantabil Retail India,32.0,0.32
+LUXIND,lux-industries-ltd,Lux Industries,35.58,0.3558
+DOLLAR,dollar-industries-ltd,Dollar Industries,32.58,0.3258
+KROSS,kross-ltd,Kross,38.74,0.3874
+SANDHAR,sandhar-technologies-ltd,Sandhar Technologies,35.12,0.35119999999999996
+ALICON,alicon-castalloy-ltd,Alicon Castalloy,36.62,0.36619999999999997
+FMGOETZE,federalmogul-goetze-india-ltd,Federal-Mogul Goetze (India),33.63,0.33630000000000004
+IGARASHI,igarashi-motors-india-ltd,Igarashi Motors India,35.65,0.3565
+STUDDS,studds-accessories-ltd,Studds Accessories,27.88,0.2788
+NDRAUTO,ndr-auto-components-ltd,NDR Auto Components,36.23,0.36229999999999996
+SUBROS,subros-ltd,Subros,35.24,0.35240000000000005
+MMFL,mm-forgings-ltd,MM Forgings,36.77,0.3677
+RML,rane-madras-ltd,Rane (Madras),35.83,0.3583
+GNA,gna-axles-ltd,GNA Axles,35.74,0.3574
+PERMAGN,permanent-magnets-ltd,Permanent Magnets,39.24,0.3924
+SWARAJENG,swaraj-engines-ltd,Swaraj Engines,28.42,0.2842
+INDNIPPON,india-nippon-electricals-ltd,India Nippon Electricals,35.74,0.3574
+DIVGIITTS,divgi-torqtransfer-systems-ltd,Divgi Torqtransfer Systems,36.17,0.3617
+RICOAUTO,rico-auto-industries-ltd,Rico Auto Industries,39.85,0.3985
+NRBBEARING,nrb-bearings-ltd,NRB Bearings,35.07,0.3507
+MUNJALAU,munjal-auto-industries-ltd,Munjal Auto Industries,37.29,0.3729
+RAJRATAN,rajratan-global-wire-ltd,Rajratan Global Wire,36.1,0.361
+CARRARO,carraro-india-ltd,Carraro India,34.37,0.34369999999999995
+BHARATSE,bharat-seats-ltd,Bharat Seats,40.11,0.4011
+UNIPARTS,uniparts-india-ltd,Uniparts India,33.31,0.3331
+HARSHA,harsha-engineers-international-ltd,Harsha Engineers International,31.43,0.3143
+SUNCLAY,sundaramclayton-ltd-686,Sundaram-Clayton,32.93,0.3293
+PRECAM,precision-camshafts-ltd,Precision Camshafts,37.38,0.3738
+RACLGEAR,racl-geartech-ltd,RACL Geartech,38.32,0.3832
+TALBROAUTO,talbros-automotive-components-ltd,Talbros Automotive Components,50.0,0.5
+VSTTILLERS,vst-tillers-tractors-ltd,V.S.T. Tillers Tractors,30.0,0.3
+ATULAUTO,atul-auto-ltd,Atul Auto,34.45,0.34450000000000003
+LANDMARK,landmark-cars-ltd,Landmark Cars,35.65,0.3565
+TAALTECH,taal-enterprises-ltd,TAAL Tech,39.46,0.3946
+DHANBANK,dhanlaxmi-bank-ltd,Dhanlaxmi Bank,38.24,0.3824
+JSFB,jana-small-finance-bank-ltd,Jana Small Finance Bank,36.19,0.3619
+UTKARSHBNK,utkarsh-small-finance-bank-ltd,Utkarsh Small Finance Bank,33.93,0.3393
+SURYODAY,suryoday-small-finance-bank-ltd,Suryoday Small Finance Bank,50.0,0.5
+EVEREADY,eveready-industries-india-ltd,Eveready Industries India,31.4,0.314
+WENDT,wendt-india-ltd,Wendt (India),32.85,0.3285
+JTLIND,jtl-infra-ltd,JTL Industries Ltd,40.35,0.4035
+SAMBHV,sambhv-steel-tubes-ltd,Sambhv Steel Tubes,34.99,0.34990000000000004
+HITECH,hitech-pipes-ltd,Hi-Tech Pipes,34.48,0.3448
+LAOPALA,la-opala-rg-ltd,La Opala RG,29.87,0.2987
+PRINCEPIPE,prince-pipes-fittings-ltd,Prince Pipes and Fittings,33.47,0.3347
+GREENPLY,greenply-industries-ltd,Greenply Industries,33.45,0.3345
+VENUSPIPES,venus-pipes-tubes-ltd,Venus Pipes & Tubes,36.65,0.3665
+HARIOMPIPE,hariom-pipe-industries-ltd,Hariom Pipe Industries,37.36,0.3736
+ELECTCAST,electrosteel-castings-ltd,Electrosteel Castings,36.14,0.3614
+INTERARCH,interarch-building-products-ltd,Interarch Building Solutions,33.01,0.3301
+ASIANTILES,asian-granito-india-ltd,Asian Granito India,37.97,0.3797
+RESPONIND,responsive-industries-ltd,Responsive Industries,37.06,0.37060000000000004
+BOROLTD,borosil-ltd,Borosil,36.26,0.3626
+HINDWAREAP,somany-home-innovation-ltd,Hindware Home Innovation,36.22,0.36219999999999997
+CARYSIL,acrysil-ltd,Carysil,34.9,0.349
+SURYAROSNI,surya-roshni-ltd,Surya Roshni,34.1,0.341
+GREENPANEL,greenpanel-industries-ltd,Greenpanel Industries,33.37,0.3337
+MWL,mangalam-worldwide-ltd,Mangalam Worldwide,30.53,0.3053
+JISLJALEQS,jain-irrigation-systems-ltd,Jain Irrigation Systems,38.62,0.3862
+APOLLOPIPE,apollo-pipes-ltd,Apollo Pipes,37.03,0.3703
+NITCO,nitco-ltd,Nitco,38.33,0.3833
+GLASSWALL,glass-wall-systems-india-ltd,Glass Wall Systems (India),50.0,0.5
+RAMCOIND,ramco-industries-ltd,Ramco Industries,33.09,0.3309
+ORIENTCEM,orient-cement-ltd,Orient Cement,30.6,0.306
+INDIANHUME,indian-hume-pipe-company-ltd,Indian Hume Pipe Company,35.62,0.35619999999999996
+HEIDELBERG,heidelberg-cement-india-ltd,Heidelberg Cement India,26.75,0.2675
+MANGLMCEM,mangalam-cement-ltd,Mangalam Cement,50.0,0.5
+VARMORA,varmora-granito-ltd,Varmora Granito,26.5,0.265
+SOMANYCERA,somany-ceramics-ltd,Somany Ceramics,32.39,0.3239
+OAL,oriental-aromatics-ltd,Oriental Aromatics,39.6,0.396
+SHREEPUSHK,shree-pushkar-chemicals-fertilisers-ltd,Shree Pushkar Chemicals & Fertilisers,39.07,0.3907
+STEAMHOUSE,steamhouse-india-ltd,Steamhouse India,30.0,0.3
+VISHNU,vishnu-chemicals-ltd,Vishnu Chemicals,32.12,0.3212
+SOTL,savita-oil-technologies-ltd,Savita Oil Technologies,37.39,0.3739
+MANALIPETC,manali-petrochemicals-ltd,Manali Petrochemicals,37.6,0.376
+SHK,sh-kelkar-co-ltd,SH Kelkar And Company,35.67,0.3567
+ELLEN,ellenbarrie-industrial-gases-ltd,Ellenbarrie Industrial Gases,37.56,0.37560000000000004
+INDOBORAX,indo-borax-chemicals-ltd,Indo Borax & Chemicals,38.27,0.38270000000000004
+GODAVARIB,godavari-biorefineries-ltd,Godavari Biorefineries,36.35,0.3635
+GHCL,ghcl-ltd,GHCL,29.1,0.29100000000000004
+GANDHAR,gandhar-oil-refinery-india-ltd,Gandhar Oil Refinery (India),38.51,0.3851
+JGCHEM,jg-chemicals-ltd,JG Chemicals,37.91,0.3791
+NOCIL,nocil-ltd,Nocil,34.56,0.3456
+DCW,dcw-ltd,DCW,35.79,0.3579
+LXCHEM,laxmi-organic-industries-ltd,Laxmi Organic Industries,36.06,0.36060000000000003
+APCOTEXIND,apcotex-industries-ltd,Apcotex Industries,33.57,0.3357
+EPIGRAL,meghmani-finechem-ltd-500,Epigral,34.86,0.3486
+TNPETRO,tamilnadu-petroproducts-ltd,Tamilnadu Petroproducts,33.07,0.3307
+IGPL,ig-petrochemicals-ltd,IG Petrochemicals,33.83,0.3383
+AVTNPL,avt-natural-products-ltd,AVT Natural Products,34.4,0.344
+PANAMAPET,panama-petrochem-ltd,Panama Petrochem,37.86,0.3786
+TATVA,tatva-chintan-pharma-chem-ltd,Tatva Chintan Pharma Chem,38.33,0.3833
+YASHO,yasho-industries-ltd,Yasho Industries,42.54,0.4254
+KIRIINDUS,kiri-industries-ltd,Kiri Industries,36.91,0.3691
+TIRUMALCHM,thirumalai-chemicals-ltd,Thirumalai Chemicals,35.62,0.35619999999999996
+CAMLINFINE,camlin-fine-sciences-ltd,Camlin Fine Sciences,42.29,0.4229
+GULPOLY,gulshan-polyols-ltd,Gulshan Polyols,34.92,0.3492
+GUJALKALI,gujarat-alkalies-chemicals-ltd,Gujarat Alkalies And Chemicals,32.77,0.32770000000000005
+PAUSHAKLTD,paushak-ltd,Paushak,39.29,0.39289999999999997
+ANDHRSUGAR,andhra-sugars-ltd,The Andhra Sugars,33.3,0.33299999999999996
+ROSSARI,rossari-biotech-ltd,Rossari Biotech,30.79,0.3079
+GRAUWEIL,grauer-weil-india-ltd,Grauer & Weil (India),35.12,0.35119999999999996
+SANSTAR,sanstar-ltd,Sanstar,33.42,0.3342
+MOL,meghmani-organochem-ltd,Meghmani Organics,36.94,0.36939999999999995
+INDOAMIN,indo-amines-ltd,Indo Amines,36.34,0.36340000000000006
+20MICRONS,-microns-ltd,20 Microns,37.13,0.3713
+PLATIND,platinum-industries-ltd,Platinum Industries,35.25,0.3525
+VALIANTORG,valiant-organics-ltd,Valiant Organics,70.0,0.7
+JUBLCPL,jubilant-agri-and-consumer-products-ltd,Jubilant Agri And Consumer Products,37.46,0.3746
+PRASOLCHEM,prasol-chemicals-ltd,Prasol Chemicals,50.0,0.5
+ARROWGREEN,arrow-greentech-ltd,Arrow Greentech,50.0,0.5
+CHEMPLASTS,chemplast-sanmar-ltd,Chemplast Sanmar,37.95,0.3795
+ULTRAMAR,ultramarine-pigments-ltd,Ultramarine & Pigments,31.72,0.3172
+AMAL,amal-ltd,Amal,50.0,0.5
+DMCC,dharamsi-morarji-chemical-company-ltd,DMCC Speciality Chemicals,39.74,0.39740000000000003
+AVANTEL,avantel-ltd,Avantel,36.33,0.36329999999999996
+DCXINDIA,dcx-systems-ltd,DCX Systems,36.07,0.3607
+PREMEXPLN,premier-explosives-ltd,Premier Explosives,39.93,0.3993
+NIBE,kavita-fabrics-ltd,NIBE,39.84,0.39840000000000003
+WALCHANNAG,walchandnagar-industries-ltd,Walchandnagar Industries,40.89,0.4089
+SIKA,sika-interplant-systems-ltd,Sika Interplant Systems,39.23,0.3923
+RPTECH,rashi-peripherals-pvt-ltd,Rashi Peripherals,37.68,0.3768
+DCI,dc-infotech-and-communication-ltd,DC Infotech and Communication,40.34,0.40340000000000004
+ARIS,arisinfra-solutions-ltd,Arisinfra Solutions,36.5,0.365
+MSTCLTD,mstc-ltd,MSTC,39.57,0.3957
+RTNINDIA,rattanindia-infrastructure-ltd,RattanIndia Enterprises,35.12,0.35119999999999996
+PERNIASPOP,purple-style-labs-ltd,Purple Style Labs,26.5,0.265
+ACEVECTOR,acevector-ltd,AceVector,50.0,0.5
+SHANTI,shanti-educational-initiatives-ltd,Shanti Educational Initiatives,39.4,0.39399999999999996
+NAVNETEDUL,navneet-education-ltd,Navneet Education,30.07,0.3007
+EXCELSOFT,excelsoft-technologies-ltd,Excelsoft Technologies,34.59,0.34590000000000004
+JARO,jaro-institute-of-technology-management-and-research-ltd,Jaro Institute of Technology Management and Research,35.86,0.3586
+CRIZAC,crizac-ltd,Crizac,33.15,0.33149999999999996
+NIITLTD,niit-ltd,NIIT,38.95,0.3895
+ORIENTELEC,orient-electric-ltd,Orient Electric,32.54,0.32539999999999997
+IFBIND,ifb-industries-ltd,IFB Industries,35.43,0.3543
+STOVEKRAFT,stove-kraft-ltd,Stove Kraft,34.56,0.3456
+BOSCH-HCIL,johnson-controls-hitachi-air-conditioning-india-ltd,Bosch Home Comfort India,32.94,0.32939999999999997
+BAJAJELEC,bajaj-electricals-ltd,Bajaj Electricals,30.25,0.3025
+EPACK,epack-durable-ltd,EPACK Durable,50.0,0.5
+SYMPHONY,symphony-ltd,Symphony,30.58,0.30579999999999996
+HAWKINCOOK,hawkins-cookers-ltd,Hawkins Cookers,26.5,0.265
+SINGERIND,singer-india-ltd,Singer India,38.88,0.38880000000000003
+LUMINO,lumino-industries-ltd,Lumino Industries,27.63,0.2763
+PARACABLES,paramount-communications-ltd,Paramount Communications,42.08,0.4208
+LASERPOWER,laser-power-infra-ltd,Laser Power & Infra,30.6,0.306
+ADVAIT,advait-infratech-ltd,Advait Energy Transitions,38.31,0.3831
+SHILCTECH,shilchar-technologies-ltd,Shilchar Technologies,38.52,0.38520000000000004
+QUADFUTURE,quadrant-future-tek-ltd,Quadrant Future Tek,41.64,0.4164
+EXICOM,exicom-telesystems-ltd,Exicom Tele-Systems,41.72,0.4172
+TEMPSENS,tempsens-instruments-india-ltd,Tempsens Instruments (India),29.28,0.2928
+PITTIENG,pitti-engineering-ltd,Pitti Engineering,33.75,0.3375
+BBL,bharat-bijlee-ltd,Bharat Bijlee,35.05,0.3505
+MARSONS,marsons-ltd,Marsons,40.68,0.4068
+INA,insolation-energy-ltd,Insolation Energy,34.16,0.34159999999999996
+RIR,ruttonsha-international-rectifier-ltd,RIR Power Electronics,39.99,0.39990000000000003
+DYCL,dynamic-cables-ltd,Dynamic Cables,41.48,0.41479999999999995
+UNIVCABLES,universal-cables-ltd,Universal Cables,42.17,0.4217
+HIRECT,hind-rectifiers-ltd,Hirect,39.56,0.3956
+SALZERELEC,salzer-electronics-ltd,Salzer Electronics,36.69,0.3669
+RISHABH,rishabh-instruments-ltd,Rishabh Instruments,37.91,0.3791
+HPL,hpl-electric-power-ltd,HPL Electric & Power,36.16,0.3616
+PROSTARM,prostarm-info-systems-ltd,Prostarm Info Systems,35.06,0.3506
+RAMRAT,ram-ratna-wires-ltd,Ram Ratna Wires,35.63,0.3563
+MVELECTRO,mv-electrosystems-ltd,MV Electrosystems,50.0,0.5
+GOCLCORP,gocl-corporation-ltd,GOCL Corporation,35.92,0.3592
+IKIO,ikio-lighting-ltd,IKIO Technologies,39.04,0.39039999999999997
+TVSELECT,tvs-electronics-ltd,TVS Electronics,37.75,0.3775
+NELCAST,nelcast-ltd,Nelcast,41.33,0.4133
+SHAKTIPUMP,shakti-pumps-india-ltd,Shakti Pumps (India),35.89,0.3589
+PRAJIND,praj-industries-ltd,Praj Industries,33.9,0.33899999999999997
+KLBRENG-B,kilburn-engineering-ltd,Kilburn Engineering,33.44,0.3344
+BLEL,behari-lal-engineering-ltd,Behari Lal Engineering,28.22,0.2822
+SCODATUBES,scoda-tubes-ltd,Scoda Tubes,34.57,0.3457
+ROTO,roto-pumps-ltd,Roto Pumps,35.96,0.35960000000000003
+BANSALWIRE,bansal-wire-industries-ltd,Bansal Wire Industries,32.32,0.3232
+EIMCOELECO,eimco-elecon-india-ltd,Eimco Elecon (India),38.33,0.3833
+JASH,jash-engineering-ltd,Jash Engineering,35.02,0.3502
+PRADPME,pradeep-metals-ltd,Pradeep Metals,45.0,0.45
+GALAPREC,gala-precision-engineering-ltd,Gala Precision Engineering,36.3,0.363
+AEROENTER,sat-industries-ltd,Aeroflex Enterprises,40.62,0.40619999999999995
+COCKERILL,cmi-fpe-ltd,John Cockerill India Ltd,39.99,0.39990000000000003
+PENIND,pennar-industries-ltd,Pennar Industries,36.76,0.3676
+STEELCAS,steelcast-ltd,Steelcast,36.07,0.3607
+BHARATWIRE,bharat-wire-ropes-ltd,Bharat Wire Ropes,38.42,0.38420000000000004
+DIFFNKG,diffusion-engineers-ltd,Diffusion Engineers,36.84,0.36840000000000006
+ADOR,ador-welding-ltd,Ador Welding,32.6,0.326
+WPIL,wpil-ltd,WPIL,35.78,0.3578
+ANUP,anveshan-heavy-engineering-ltd,The Anup Engineering,37.09,0.3709
+MAMATA,mamata-machinery-ltd,Mamata Machinery,33.77,0.33770000000000006
+YUKEN,yuken-india-ltd,Yuken India,34.19,0.3419
+HTEL,hytech-engineers-ltd,Hy-Tech Engineers,50.0,0.5
+OSWALPUMPS,oswal-pumps-ltd,Oswal Pumps,50.0,0.5
+EKC,everest-kanto-cylinder-ltd,Everest Kanto Cylinder,34.49,0.34490000000000004
+RAJOOENG,rajoo-engineers-ltd,Rajoo Engineers,37.2,0.37200000000000005
+UGROCAP,urgo-capital-ltd,Ugro Capital,33.57,0.3357
+MUTHOOTMF,muthoot-microfin-ltd,Muthoot Microfin,35.01,0.35009999999999997
+MOBIKWIK,one-mobikwik-systems-ltd,One Mobikwik Systems,38.7,0.387
+CCAVENUE,infibeam-avenues-ltd,AvenuesAI,34.57,0.3457
+ARIHANTCAP,arihant-capital-markets-ltd,Arihant Capital Markets,36.87,0.36869999999999997
+SMCGLOBAL,smc-global-securities-ltd,SMC Global Securities,36.92,0.36920000000000003
+ZAGGLE,zaggle-prepaid-ocean-services-ltd,Zaggle Prepaid Ocean Services,40.72,0.4072
+NORTHARC,northern-arc-capital-ltd,Northern Arc Capital,33.35,0.3335
+AYE,aye-finance-ltd,AYE Finance,35.63,0.3563
+SHAREINDIA,share-india-securities-ltd,Share India Securities,37.5,0.375
+GAJA,gaja-alternative-asset-management-ltd,Gaja Alternative Asset Management,29.79,0.2979
+PFS,ptc-india-financial-services-ltd,PTC India Financial Services,31.78,0.3178
+SATIN,satin-creditcare-network-ltd,Satin Creditcare Network,32.25,0.3225
+CRAMC,canara-robeco-asset-management-co-ltd,Canara Robeco Asset Management Co,30.14,0.3014
+REPCOHOME,repco-home-finance-ltd,Repco Home Finance,31.21,0.3121
+NPST,network-people-services-technologies-ltd,Network People Services Technologies,38.65,0.3865
+GCSL,gretex-corporate-services-ltd,Gretex Corporate Services,40.0,0.4
+MASFIN,mas-financial-services-ltd,MAS Financial Services,29.39,0.2939
+FUSION,fusion-micro-finance-ltd,Fusion Finance,36.79,0.3679
+ARMANFIN,arman-financial-services-ltd,Arman Financial Services,34.82,0.3482
+MUFIN,apm-finvest-ltd-1568950220978,Mufin Green Finance,32.11,0.3211
+MASTERTR,master-trust-ltd,Master Trust,40.14,0.4014
+KIRLOSIND,kirloskar-industries-ltd,Kirloskar Industries,33.73,0.3373
+ALGOQUANT,hindustan-everest-tools-ltd,Algoquant Fintech,31.82,0.3182
+SPANDANA,spandana-sphoorty-financial-ltd,Spandana Sphoorty Financial,35.89,0.3589
+FINOPB,fino-payments-bank-ltd,Fino Payments Bank,40.72,0.4072
+DAMCAPITAL,dam-capital-advisors-ltd,DAM Capital Advisors,35.21,0.3521
+ICRA,icra-ltd,ICRA,26.62,0.2662
+INDOSTAR,indostar-capital-finance-ltd,Indostar Capital Finance,37.68,0.3768
+PNBGILTS,pnb-gilts-ltd,PNB Gilts,33.46,0.3346
+MANBA,manba-finance-ltd,Manba Finance,28.95,0.2895
+ARSSBL,anand-rathi-share-stock-brokers-ltd,Anand Rathi Share & Stock Brokers,50.0,0.5
+EMKAY,emkay-global-financial-services-ltd,Emkay Global Financial Services,40.25,0.4025
+GEOJITFSL,geojit-financial-services-ltd,Geojit Financial Services,33.26,0.3326
+MONARCH,monarch-networth-capital-ltd,Monarch Networth Capital,31.55,0.3155
+PRIMESECU,prime-securities-ltd,Prime Securities,30.89,0.3089
+GYFTR,lkp-finance-ltd,Gyftr,36.44,0.3644
+VIPIND,vip-industries-ltd,VIP Industries,32.32,0.3232
+HMAAGRO,hma-agro-industries-ltd,HMA Agro Industries,35.41,0.35409999999999997
+VINCOFE,spaceage-products-ltd,Vintage Coffee & Beverages,35.53,0.3553
+GLOBUSSPR,globus-spirits-ltd,Globus Spirits,34.45,0.34450000000000003
+GRMOVER,grm-overseas-ltd,GRM Overseas,36.25,0.3625
+PARAGMILK,parag-milk-foods-ltd,Parag Milk Foods,38.86,0.3886
+INDIAGLYCO,india-glycols-ltd,India Glycols,45.0,0.45
+ADFFOODS,adf-foods-ltd,ADF Foods,37.0,0.37
+VENKEYS,venkys-india-ltd,Venky'S (India),32.2,0.322
+APEX,apex-frozen-foods-ltd,Apex Frozen Foods,40.28,0.4028
+REGAAL,regaal-resources-ltd,Regaal Resources,36.36,0.3636
+SULA,sula-vineyards-ltd,Sula Vineyards,29.92,0.2992
+TASTYBITE,tasty-bite-eatables-ltd,Tasty Bite Eatables,33.76,0.33759999999999996
+HERITGFOOD,heritage-foods-ltd,Heritage Foods,32.29,0.32289999999999996
+SDBL,som-distilleries-breweries-ltd,Som Distilleries And Breweries,38.04,0.3804
+GANESHCP,ganesh-consumer-products-ltd,Ganesh Consumer Products,33.36,0.3336
+SKMEGGPROD,skm-egg-products-export-india-ltd,SKM Egg Products Export (India),41.33,0.4133
+GOPAL,gopal-snacks-ltd,Gopal Snacks,29.63,0.2963
+GMBREW,gm-breweries-ltd,GM Breweries,32.69,0.32689999999999997
+VSTIND,vst-industries-ltd,VST Industries,27.39,0.27390000000000003
+SHINDL,sharat-industries-ltd,Sharat Industries,30.52,0.30519999999999997
+BCLIND,bcl-industries-ltd,BCL Industries,33.83,0.3383
+WAKEFIT,wakefit-innovations-ltd,Wakefit Innovations,32.06,0.3206
+EUROPRATIK,euro-pratik-sales-ltd,Euro Pratik Sales,36.06,0.36060000000000003
+CONFIPET,confidence-petroleum-india-ltd,Confidence Petroleum India,42.73,0.42729999999999996
+IRMENERGY,irm-energy-ltd,IRM Energy,35.59,0.35590000000000005
+TTKHLTCARE,ttk-healthcare-ltd,TTK Healthcare,33.85,0.3385
+INDRAMEDCO,indraprastha-medical-corporation-ltd,Indraprastha Medical Corporation,33.79,0.3379
+SURAKSHA,suraksha-diagnostic-ltd,Suraksha Diagnostic,31.6,0.316
+FISCHER,fischer-chemic-ltd,Fischer Medical Ventures,38.27,0.38270000000000004
+KRSNAA,krsnaa-diagnostics-ltd-643,Krsnaa Diagnostics,29.86,0.2986
+GKSL,gujarat-kidney-and-super-speciality-ltd,Gujarat Kidney And Super Speciality,29.51,0.29510000000000003
+MOMSBELIEF,rays-of-belief-ltd,Rays Of Belief,50.0,0.5
+JSLL,jeena-sikho-lifecare-ltd,Jeena Sikho Lifecare,50.0,0.5
+TARSONS,tarsons-products-ltd,Tarsons Products,37.8,0.37799999999999995
+3BBLACKBIO,kilpest-india-ltd,3B Blackbio Dx,38.91,0.38909999999999995
+ORIENTHOT,oriental-hotels-ltd,Oriental Hotels,35.79,0.3579
+DELTACORP,delta-corp-ltd,Delta Corp,39.32,0.3932
+SAMHI,samhi-hotels-ltd-1569403388621,Samhi Hotels,32.61,0.3261
+WONDERLA,wonderla-holidays-ltd,Wonderla Holidays,29.69,0.2969
+BRIGHOTEL,brigade-hotel-ventures-ltd,Brigade Hotel Ventures,26.5,0.265
+MHRIL,mahindra-holidays-resorts-india-ltd,Mahindra Holidays & Resorts India,29.55,0.2955
+JUNIPER,juniper-hotels-ltd,Juniper Hotels,30.65,0.3065
+YATRA,yatra-online-ltd,Yatra Online Ltd,50.0,0.5
+IMAGICAA,adlabs-entertainment-ltd,Imagicaaworld Entertainment,35.26,0.35259999999999997
+PARKHOTELS,apeejay-surrendra-park-hotels-ltd,Apeejay Surrendra Park Hotels,50.0,0.5
+BLKASHYAP,bl-kashyap-sons-ltd,B.L. Kashyap and Sons,37.43,0.3743
+HCC,hindustan-construction-company-ltd,Hindustan Construction Company,37.69,0.37689999999999996
+PATELENG,patel-engineering-ltd,Patel Engineering,33.62,0.3362
+FABTECH,fabtech-technologies-ltd,Fabtech Technologies,31.92,0.31920000000000004
+KNRCON,knr-construction-ltd,KNR Constructions,32.95,0.3295
+SWSOLAR,sterling-and-wilson-solar-ltd,Sterling and Wilson Renewable Energy,35.72,0.35719999999999996
+LCCPROJECT,lcc-projects-ltd,LCC Projects,26.5,0.265
+GARUDA,garuda-construction-engineering-ltd,Garuda Construction & Engineering,38.01,0.3801
+AHLUCONT,ahluwalia-contracts-india-ltd,Ahluwalia Contracts (India),33.0,0.33
+EPACKPEB,epack-prefab-technologies-ltd,EPack Prefab Technologies,38.01,0.3801
+JKIL,j-kumar-infraproject-ltd,J Kumar Infraprojects,30.56,0.3056
+VINDHYATEL,vindhya-telelinks-ltd,Vindhya Telelinks,41.0,0.41
+SPMLINFRA,spml-infra-ltd,SPML Infra,38.19,0.38189999999999996
+VIKRAN,vikran-engineering-ltd,Vikran Engineering,35.64,0.3564
+MBEL,mb-engineering-ltd,M&B Engineering,36.8,0.368
+GKENERGY,gk-energy-ltd,GK Energy,34.25,0.3425
+PNCINFRA,pnc-infratech-ltd,PNC Infratech,36.04,0.3604
+SIMPLEXINF,simplex-infrastructures-ltd,Simplex Infrastructures,38.85,0.3885
+CAPACITE,capacite-infraprojects-ltd,Capacit'e Infraprojects,36.07,0.3607
+HGINFRA,hg-infra-engineering-ltd,H.G. Infra Engineering,32.19,0.32189999999999996
+BAJEL,bajel-projects-ltd,Bajel Projects,35.17,0.3517
+GPTINFRA,gpt-infraprojects-ltd,GPT Infraprojects,34.47,0.3447
+SRM,srm-contractors-ltd,SRM Contractors,35.42,0.3542
+BONDADA,bondada-engineering-ltd,Bondada Engineering,50.0,0.5
+TECHNOCRAF,technocraft-ventures-ltd,Technocraft Ventures,80.0,0.8
+PSPPROJECT,psp-projects-ltd,PSP Projects,34.55,0.3455
+RAMKY,ramky-infrastructure-ltd,Ramky Infrastructure,36.04,0.3604
+ASHOKA,ashoka-buildcon-ltd,Ashoka Buildcon,50.0,0.5
+HAPPSTMNDS,happiest-minds-technologies-ltd,Happiest Minds Technologies,32.36,0.3236
+AURIONPRO,aurionpro-solutions-ltd,Aurionpro Solutions,36.6,0.366
+MAPMYINDIA,c-e-info-systems-ltd,CE Info Systems,35.14,0.3514
+GENESYS,genesys-international-corporation-ltd,Genesys International Corporation,48.29,0.4829
+MCLOUD,south-india-projects-ltd,Magellanic Cloud,41.7,0.41700000000000004
+63MOONS,-moons-technologies-ltd,63 Moons Technologies,38.99,0.3899
+EMUDHRA,emudhra-ltd,eMudhra,45.0,0.45
+CAPILLARY,capillary-technologies-india-ltd,Capillary Technologies India,33.15,0.33149999999999996
+RPSGVENT,cesc-ventures-ltd,RPSG Ventures,35.65,0.3565
+MOSCHIP,moschip-semiconductor-technology-ltd,Moschip Technologies,38.04,0.3804
+INFOBEAN,infobeans-technologies-ltd,Infobeans Technologies,42.8,0.428
+RSYSTEMS,r-systems-international-ltd,R Systems International,37.11,0.3711
+LATENTVIEW,latent-view-analytics-ltd,Latent View Analytics,33.97,0.3397
+CEINSYS,ceinsys-tech-ltd,Ceinsys Tech,39.5,0.395
+STYL,seshaasai-technologies-ltd,Seshaasai Technologies,33.01,0.3301
+DATAMATICS,datamatics-global-services-ltd,Datamatics Global Services,34.6,0.34600000000000003
+ARMEE,armee-infotech-ltd,Armee Infotech,26.5,0.265
+ADSL,allied-digital-services-ltd,Allied Digital Services,38.67,0.38670000000000004
+JAYKAY,jaykay-enterprises-ltd,Jaykay Enterprises,43.96,0.4396
+EXPLEOSOL,sqs-india-bfsi-ltd,Expleo Solutions,32.8,0.32799999999999996
+QUICKHEAL,quick-heal-technologies-ltd,Quick Heal Technologies,38.91,0.38909999999999995
+SAKSOFT,saksoft-ltd,Saksoft,37.08,0.37079999999999996
+KELLTONTEC,kellton-tech-solutions-ltd,Kellton Tech Solutions,36.22,0.36219999999999997
+BLSE,bls-eservices-ltd,BLS E-Services,33.73,0.3373
+DIGITIDE,digitide-solutions-ltd,Digitide Solutions,36.63,0.3663
+PROTEAN,protean-egov-technologies-ltd,Protean e-Gov Technologies,38.23,0.3823
+MASTEK,mastek-ltd,Mastek,34.71,0.3471
+ONEPOINT,one-point-one-solutions-ltd,One Point One Solutions,35.82,0.3582
+ORIENTTECH,orient-technologies-ltd,Orient Technologies,50.0,0.5
+IVALUE,ivalue-infosolutions-ltd,Ivalue Infosolutions,33.82,0.3382
+UNIECOM,unicommerce-esolutions-ltd,Unicommerce eSolutions,34.07,0.3407
+ROUTE,route-mobile-ltd,Route Mobile,50.0,0.5
+AURUM,majesco-ltd,Aurum Proptech,32.97,0.3297
+ACCELYA,accelya-kale-solutions-ltd,Accelya Solutions India,27.93,0.2793
+CONTROLPR,control-print-ltd,Control Print,32.31,0.3231
+MEDIASSIST,medi-assist-healthcare-services-ltd,Medi Assist Healthcare Services,31.64,0.3164
+SHANTIGOLD,shanti-gold-international-ltd,Shanti Gold International,38.4,0.384
+PNGSREVA,pngs-reva-diamond-jewellery-ltd,PNGS Reva Diamond Jewellery,36.97,0.3697
+GOLDIAM,goldiam-international-ltd,Goldiam International,39.48,0.3948
+VAIBHAVGBL,vaibhav-global-ltd,Vaibhav Global,34.97,0.3497
+RGL,renaissance-jewellery-ltd,Renaissance Global,41.46,0.4146
+DEEPA,deepa-jewellers-ltd,Deepa Jewellers,50.0,0.5
+SHANKESH,shankesh-jewellers-ltd,Shankesh Jewellers,50.0,0.5
+KHAZANCHI,khazanchi-jewellers-ltd,Khazanchi Jewellers,50.0,0.5
+MOTISONS,motisons-jewellers-ltd,Motisons Jewellers,50.0,0.5
+SKYWAYS,skyways-air-services-ltd,Skyways Air Services,28.56,0.28559999999999997
+CMSINFO,cms-info-systems-ltd,CMS Info Systems,28.92,0.2892
+NAVKARCORP,navkar-corporation-ltd,Navkar Corporation,35.72,0.35719999999999996
+GATEWAY,gateway-distriparks-ltd-394,Gateway Distriparks,29.36,0.29359999999999997
+MAHLOG,mahindra-logistics-ltd,Mahindra Logistics,34.0,0.34
+WCIL,western-carriers-india-ltd,Western Carriers (India),32.05,0.32049999999999995
+POKARNA,pokarna-ltd,Pokarna,39.97,0.3997
+SANGHVIMOV,sanghvi-movers-ltd,Sanghvi Movers,40.37,0.40369999999999995
+TCIEXP,tci-express-ltd,TCI Express,33.49,0.33490000000000003
+RITCO,ritco-logistics-ltd,Ritco Logistics,33.88,0.33880000000000005
+REFEX,refex-industries-ltd,Refex Industries,50.0,0.5
+BALMLAWRIE,balmer-lawrie-company-ltd,Balmer Lawrie & Company,50.0,0.5
+DREDGECORP,dredging-corporation-of-india-ltd,Dredging Corporation Of India,38.96,0.3896
+SUNSHINE,sunshine-pictures-ltd,Sunshine Pictures,35.34,0.35340000000000005
+JAGRAN,jagran-prakashan-ltd,Jagran Prakashan,26.5,0.265
+NETWORK18,network-media-investment-ltd,Network 18 Media & Investments,34.06,0.3406
+MPSLTD,mps-ltd,MPS,36.54,0.3654
+DBCORP,db-corp-ltd,D.B. Corp,30.05,0.3005
+SIGNPOST,signpost-india-ltd,Signpost India,37.82,0.3782
+AONESTEELS,aone-steels-india-ltd,A-One Steels India,26.95,0.2695
+ASHAPURMIN,ashapura-minechem-ltd,Ashapura Minechem,38.87,0.3887
+MANAKCOAT,manaksia-coated-metals-industries-ltd,Manaksia Coated Metals & Industries,36.92,0.36920000000000003
+POCL,pondy-oxides-chemicals-ltd,Pondy Oxides & Chemicals,37.36,0.3736
+MOIL,moil-ltd,MOIL,33.14,0.33140000000000003
+MAITHANALL,maithan-alloys-ltd,Maithan Alloys,32.05,0.32049999999999995
+MUKANDLTD,mukand-ltd,Mukand,34.28,0.3428
+DECNGOLD,deccan-gold-mines-ltd,Deccan Gold Mines,43.84,0.4384
+ARFIN,arfin-india-ltd,Arfin India,36.41,0.3641
+PRAKASH,prakash-industries-ltd,Prakash Industries,34.44,0.3444
+RSL,rajputana-stainless-ltd,Rajputana Stainless,28.51,0.2851
+BMWVENTLTD,bmw-ventures-ltd,BMW Ventures,32.23,0.3223
+ARDEE,ardee-industries-ltd,Ardee Industries,50.0,0.5
+GERMAN,german-green-steel-and-power-ltd,German Green Steel and Power,50.0,0.5
+RATNAVEER,ratnaveer-precision-engineering-ltd,Ratnaveer Precision Engineering,50.0,0.5
+VSSL,vardhman-special-steels-ltd,Vardhman Special Steels,33.44,0.3344
+ORISSAMINE,orissa-minerals-development-company-ltd,The Orissa Minerals Development Company,33.81,0.3381
+KSL,kalyani-steels-ltd,Kalyani Steels,33.21,0.3321
+ASIANENE,asian-oilfield-services-ltd,Asian Energy Services,39.23,0.3923
+HINDOILEXP,hindustan-oil-exploration-company-ltd,Hindustan Oil Exploration Company,37.03,0.3703
+JINDRILL,jindal-drilling-industries-ltd,Jindal Drilling & Industries,37.35,0.3735
+GNRL,gujarat-natural-resources-ltd,Gujarat Natural Resources,40.0,0.4
+JNKINDIA,jnk-india-ltd,JNK India,39.21,0.3921
+RIIL,reliance-industrial-infrastructure-ltd,Reliance Industrial Infrastructure,31.64,0.3164
+DEEP,deep-industries-ltd-363,Deep Industries,37.52,0.37520000000000003
+SEAMECLTD,seamec-ltd,Seamec,32.22,0.3222
+PRABHA,prabha-energy-ltd,Prabha Energy Ltd,35.24,0.35240000000000005
+TRUALT,trualt-bioenergy-ltd,TruAlt Bioenergy,50.0,0.5
+SOUTHWEST,south-west-pinnacle-exploration-ltd,South West Pinnacle Exploration,39.35,0.3935
+DOLPHIN,dolphin-offshore-enterprises-india-ltd,Dolphin Offshore Enterprises (India),49.0,0.49
+TCPLPACK,tcpl-packaging-ltd,TCPL Packaging,36.78,0.3678
+FRONTSP,frontier-springs-ltd,Frontier Springs,40.79,0.4079
+MANIKA,manika-plastech-ltd,Manika Plastech,29.62,0.2962
+HALDYNGL,haldyn-glass-ltd,Haldyn Glass,38.26,0.3826
+JINDALPOLY,jindal-poly-films-ltd,Jindal Poly Films,37.37,0.3737
+COMSYN,commercial-syn-bags-ltd,Commercial Syn Bags,39.36,0.3936
+AGI,hsil-ltd,AGI Greenpac,35.67,0.3567
+MOLDTKPAC,moldtek-packaging-ltd,Mold-Tek Packaging,32.82,0.3282
+POLYPLEX,polyplex-corporation-ltd,Polyplex Corporation,32.11,0.3211
+KNACK,knack-packaging-ltd,Knack Packaging,27.29,0.2729
+HUHTAMAKI,huhtamaki-ppl-ltd,Huhtamaki India,38.24,0.3824
+UFLEX,uflex-ltd,Uflex,33.76,0.33759999999999996
+COSMOFIRST,cosmo-films-ltd,Cosmo First,34.52,0.3452
+ALLTIME,all-time-plastics-ltd,All Time Plastics,34.13,0.34130000000000005
+INDIGOPNTS,indigo-paints-ltd,Indigo Paints,31.96,0.3196
+SIRCA,sirca-paints-india-ltd,SIRCA Paints India,50.0,0.5
+PDMJEPAPER,pudumjee-paper-products-ltd,Pudumjee Paper Products,34.5,0.345
+WSTCSTPAPR,west-coast-paper-mills-ltd,West Coast Paper Mills,38.46,0.3846
+FLAIR,flair-writing-industries-ltd,Flair Writing Industries,30.16,0.3016
+NRAIL,nr-agarwal-industries-ltd,NR Agarwal Industries,38.82,0.3882
+TNPL,tamil-nadu-newsprint-papers-ltd,Tamil Nadu Newsprint & Papers,30.82,0.30820000000000003
+ANDHRAPAP,international-paper-appm-ltd,Andhra Paper,30.7,0.307
+SESHAPAPER,seshasayee-paper-boards-ltd,Seshasayee Paper and Boards,31.19,0.3119
+SYNCOMF,syncom-formulations-india-ltd,Syncom Formulations (India),38.6,0.386
+AARTIDRUGS,aarti-drugs-ltd,Aarti Drugs,32.44,0.32439999999999997
+KPL,kwality-pharmaceuticals-ltd,Kwality Pharmaceuticals,60.0,0.6
+GUFICBIO,gufic-biosciences-ltd,Gufic Biosciences,32.99,0.3299
+PANACEABIO,panacea-biotec-ltd,Panacea Biotec,39.32,0.3932
+SOLARA,solara-active-pharma-science-ltd,Solara Active Pharma Sciences,37.4,0.374
+SAIPARENT,sai-parenterals-ltd,Sai Parenteral's,28.66,0.2866
+DCAL,dishman-carbogen-amcis-ltd,Dishman Carbogen Amcis,41.27,0.4127
+FREDUN,fredun-pharmaceuticals-ltd,Fredun Pharmaceuticals,39.52,0.39520000000000005
+BAJAJHCARE,bajaj-healthcare-ltd,Bajaj Healthcare,35.68,0.3568
+WINDLAS,windlas-biotech-ltd,Windlas Biotech,34.29,0.3429
+KILITCH,kilitch-drugs-india-ltd,Kilitch Drugs (India),38.04,0.3804
+ADVENZYMES,advanced-enzyme-technologies-ltd,Advanced Enzyme Technologies,32.47,0.3247
+INDSWFTLAB,indswift-laboratories-ltd,Ind-Swift Laboratories,60.0,0.6
+INDOCO,indoco-remedies-ltd,Indoco Remedies,37.67,0.37670000000000003
+FERMENTA,dil-ltd,Fermenta Biotech,39.43,0.3943
+VIMTALABS,vimta-labs-ltd,Vimta Labs,37.91,0.3791
+RPGLIFE,rpg-life-sciences-ltd,RPG Life Sciences,36.21,0.36210000000000003
+UNICHEMLAB,unichem-laboratories-ltd,Unichem Laboratories,36.98,0.36979999999999996
+SMSPHARMA,sms-pharmaceuticals-ltd,SMS Pharmaceuticals,37.58,0.37579999999999997
+EVONILE,novartis-india-ltd,Evonile Pharma,40.0,0.4
+WANBURY,wanbury-ltd,Wanbury,39.58,0.3958
+GUJTHEM,gujarat-themis-biosyn-ltd,Gujarat Themis Biosyn,38.97,0.3897
+LINCOLN,lincoln-pharmaceuticals-ltd,Lincoln Pharmaceuticals,33.73,0.3373
+HIKAL,hikal-ltd,Hikal,37.35,0.3735
+JAGSNPHARM,jagsonpal-pharmaceuticals-ltd,Jagsonpal Pharmaceuticals,33.16,0.33159999999999995
+MAYURUNIQ,mayur-uniquoters-ltd,Mayur Uniquoters,33.21,0.3321
+JAICORPLTD,jai-corp-ltd,Jai Corp,35.95,0.35950000000000004
+NILKAMAL,nilkamal-ltd,Nilkamal,33.25,0.3325
+XPROINDIA,xpro-india-ltd,Xpro India,38.37,0.3837
+BEPL,bhansali-engineering-polymers-ltd,Bhansali Engineering Polymers,33.08,0.3308
+PREMIERPOL,premier-polyfilm-ltd,Premier Polyfilm,43.14,0.4314
+STYRENIX,ineos-styrolution-india-ltd,Styrenix Performance Materials,30.31,0.3031
+SOLARWORLD,solarworld-energy-solutions-ltd,Solarworld Energy Solutions,34.84,0.34840000000000004
+KPEL,kp-energy-ltd,KP Energy,39.19,0.39189999999999997
+INOXGREEN,inox-green-energy-services-ltd,Inox Green Energy Services,39.39,0.39390000000000003
+GIPCL,gujarat-industries-power-company-ltd,Gujarat Industries Power Company,32.83,0.3283
+BFUTILITIE,bf-utilities-ltd,BF Utilities,36.99,0.3699
+PTC,ptc-india-ltd,PTC India,30.83,0.30829999999999996
+RELTD,ravindra-energy-ltd,Ravindra Energy,37.66,0.3766
+SAATVIKGL,saatvik-green-energy-ltd,Saatvik Green Energy,31.19,0.3119
+FEDDERSHOL,im-capitals-ltd,Fedders Holding,38.44,0.38439999999999996
+NIITMTS,niit-learning-systems-ltd-,NIIT Learning Systems,34.81,0.3481
+BLUSPRING,bluspring-enterprises-ltd,Bluspring Enterprises,41.31,0.4131
+UDS,updater-services-ltd,Updater Services,34.9,0.349
+TEAMLEASE,teamlease-services-ltd,TeamLease Services,29.62,0.2962
+KERNEX,kernex-microsystems-india-ltd,Kernex Microsystems (India),42.29,0.4229
+TEXRAIL,texmaco-rail-engineering-ltd,Texmaco Rail & Engineering,37.03,0.3703
+ORIRAIL,oriental-veneer-products-ltd,Oriental Rail Infrastructure,38.81,0.3881
+CARERATING,care-ratings-ltd,Care Ratings,30.09,0.3009
+RAYMONDREL,raymond-realty-ltd,Raymond Realty,39.51,0.3951
+AGIIL,agi-infra-ltd,AGI Infra,38.5,0.385
+TARC,anant-raj-global-ltd,TARC,35.03,0.3503
+PURVA,puravankara-ltd,Puravankara,35.71,0.35710000000000003
+MANINFRA,man-infraconstruction-ltd,Man InfraConstruction,33.2,0.332
+ALEMBICLTD,alembic-ltd,Alembic,32.34,0.3234
+HUBTOWN,hubtown-ltd,Hubtown,39.21,0.3921
+SUNTECK,sunteck-realty-ltd,Sunteck Realty,32.76,0.3276
+KOLTEPATIL,kolte-patil-developers-ltd,Kolte-Patil Developers,32.39,0.3239
+AJMERA,ajmera-realty-infra-india-ltd,Ajmera Realty & Infra India,36.17,0.3617
+ARKADE,arkade-developers-ltd,Arkade Developers,31.45,0.3145
+VEEGALAND,veegaland-developers-ltd,Veegaland Developers,26.5,0.265
+EFCIL,amani-trading-and-exports-ltd,EFC (I),35.38,0.3538
+MODIS,modis-navnirman-ltd,Modi's Navnirman,33.49,0.33490000000000003
+OMAXE,omaxe-ltd,Omaxe,41.01,0.41009999999999996
+TCC,aaswa-trading-exports-ltd,TCC Concept,40.34,0.40340000000000004
+ARVSMART,arvind-smartspaces-ltd,Arvind Smartspaces,32.13,0.32130000000000003
+SHRIRAMPPS,shriram-properties-ltd,Shriram Properties,33.18,0.3318
+TEXINFRA,texmaco-infrastructure-holdings-ltd,Texmaco Infrastructure & Holdings,31.93,0.3193
+MARATHON,marathon-nextgen-realty-ltd,Marathon Nextgen Realty,36.09,0.36090000000000005
+PRANAV,pranav-constructions-ltd,Pranav Constructions,50.0,0.5
+INDIQUBE,indiqube-spaces-ltd,Indiqube Spaces,30.65,0.3065
+AWFIS,awfis-space-solutions-ltd,Awfis Space Solutions,50.0,0.5
+SURAJEST,suraj-estate-developers-ltd,Suraj Estate Developers,50.0,0.5
+HEMIPROP,hemisphere-properties-india-ltd,Hemisphere Properties India,32.87,0.3287
+MIIL,naysaa-securities-ltd,Meghna Infracon Infrastructure,32.11,0.3211
+RUSTOMJEE,keystone-realtors-ltd,Keystone Realtors Ltd,30.16,0.3016
+ASHIANA,ashiana-housing-ltd,Ashiana Housing,31.88,0.3188
+FOSECOIND,foseco-india-ltd,Foseco India,33.39,0.33390000000000003
+PATELRMART,patel-retail-ltd,Patel Retail,32.96,0.3296
+BUILDPRO,shankara-buildpro-ltd,Shankara Buildpro,36.84,0.36840000000000006
+KALAMANDIR,sai-silks-kalamandir-ltd,Sai Silks (Kalamandir),35.29,0.3529
+SHOPERSTOP,shoppers-stop-ltd,Shoppers Stop,32.8,0.32799999999999996
+SSRETAIL,ss-retail-ltd,SS Retail,50.0,0.5
+ABFRL,aditya-birla-fashion-and-retail-ltd,Aditya Birla Fashion and Retail,50.0,0.5
+PIXTRANS,pix-transmissions-ltd,Pix Transmissions,33.01,0.3301
+BAJAJHIND,bajaj-hindusthan-sugar-ltd,Bajaj Hindusthan Sugar,35.93,0.3593
+DALMIASUG,dalmia-bharat-sugar-industries-ltd,Dalmia Bharat Sugar And Industries,38.11,0.3811
+AVADHSUGAR,avadh-sugar-energy-ltd,Avadh Sugar & Energy,37.71,0.3771
+DHAMPURSUG,dhampur-sugar-mills-ltd,Dhampur Sugar Mills,34.52,0.3452
+RENUKA,shree-renuka-sugars-ltd,Shree Renuka Sugars,32.7,0.327
+DBOL,dhampur-bio-organics-ltd,Dhampur Bio Organics,36.93,0.3693
+UTTAMSUGAR,uttam-sugar-mills-ltd,Uttam Sugar Mills,40.7,0.40700000000000003
+DWARKESH,dwarikesh-sugar-industries-ltd,Dwarikesh Sugar Industries,37.09,0.3709
+MAGADSUGAR,magadh-sugar-energy-ltd,Magadh Sugar & Energy,34.93,0.3493
+NELCO,nelco-ltd,Nelco,37.37,0.3737
+MTNL,mahanagar-telephone-nigam-ltd,Mahanagar Telephone Nigam,37.12,0.3712
+PACEDIGITK,pace-digitek-ltd,Pace Digitek,33.19,0.3319
+SUYOG,suyog-telematics-ltd,Suyog Telematics,36.97,0.3697
+DLINKINDIA,dlink-india-ltd,D-Link (India),31.16,0.3116
+ORIENTCABL,orient-cables-india-ltd,Orient Cables (India),50.0,0.5
+FILATEX,filatex-india-ltd,Filatex India,40.0,0.4
+NITINSPIN,nitin-spinners-ltd,Nitin Spinners,32.96,0.3296
+JINDWORLD,jindal-worldwide-ltd,Jindal Worldwide,43.63,0.4363
+KITEX,kitex-garments-ltd,Kitex Garments,38.88,0.38880000000000003
+RAYMONDLSL,raymond-lifestyle-ltd,Raymond Lifestyle,33.9,0.33899999999999997
+GHCLTEXTIL,ghcl-textiles-ltd,GHCL Textiles,34.38,0.34380000000000005
+GANECOS,ganesha-ecosphere-ltd,Ganesha Ecosphere,35.99,0.3599
+SPORTKING,sportking-india-ltd,Sportking India,38.73,0.3873
+SIYSIL,siyaram-silk-mills-ltd,Siyaram Silk Mills,60.0,0.6
+HIMATSEIDE,himatsingka-seide-ltd,Himatsingka Seide,35.84,0.35840000000000005
+SANATHAN,sanathan-textiles-ltd,Sanathan Textiles,32.02,0.32020000000000004
+GOCOLORS,go-fashion-india-ltd,Go Fashion (India),36.45,0.36450000000000005
+SPAL,sp-apparels-ltd,S.P. Apparels,37.73,0.37729999999999997
+SBC,sbc-exports-ltd,SBC Exports,80.0,0.8
+SONA,sonaselection-india-ltd,Sonaselection India,50.0,0.5
+FAZE3Q,faze-three-ltd,Faze Three,50.0,0.5
+AYMSYNTEX,aym-syntex-ltd,AYM Syntex,37.06,0.37060000000000004
+PASUPTAC,pasupati-acrylon-ltd,Pasupati Acrylon,50.0,0.5
+CENTENKA,century-enka-ltd,Century Enka,33.35,0.3335
+TVSSRICHAK,tvs-srichakra-ltd,TVS Srichakra,34.15,0.34149999999999997
+TINNARUBR,tinna-rubber-infrastructure-ltd,Tinna Rubber And Infrastructure,40.67,0.4067
+AWHCL,antony-waste-handling-cell-ltd,Antony Waste Handling Cell,35.21,0.3521
+IONEXCHANG,ion-exchange-india-ltd,Ion Exchange (India),34.03,0.3403
+EIEL,enviro-infra-engineers-ltd,Enviro Infra Engineers,36.49,0.3649
+DENTA,denta-water-and-infra-solutions-ltd,Denta Water And Infra Solutions,36.05,0.3605
+EMSLIMITED,ems-ltd,EMS,50.0,0.5

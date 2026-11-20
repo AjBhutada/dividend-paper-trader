@@ -1,0 +1,2 @@
+- `shares.csv`: share counts (crore per rupee of price) from the AMFI list of average market caps for Jan-Jun 2026, divided by the average close over the same months. Market cap = shares x price. Replace it in January and July with the newest NSE/AMFI half-year list (`python paper/update_shares.py`), otherwise old share counts are used (still price-scaled).
+- `groww_mtf_list.csv`: Groww's MTF stocks (Rs 520-4,950 cr range) read by hand from groww.in/stocks/mtf/list on 20 Nov 2026. Kite and Upstox lists are downloaded fresh every run.

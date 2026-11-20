@@ -1,0 +1,74 @@
+name: live-paper-trading
+# Real-time paper trading on the Upstox live feed (no real orders). Three parts of the day, India time:
+#   8:50 am  morning: plan the day (new dividends + all rules); live buying until 12:20 if a dividend is bought today
+#   12:15 pm afternoon: live buying until 3:00 pm on buy days (until 3:30 pm if a sale is due too)
+#   2:45 pm  sells: live selling at 3:05 / 3:20 pm on a last cum day
+# On quiet days each part takes about a minute. The 9 pm workflow (daily.yml) finishes the day and backs up anything missed.
+on:
+  schedule:
+    - cron: "20 3 * * 1-5"
+    - cron: "45 6 * * 1-5"
+    - cron: "15 9 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "test = connection test only (no trading); or morning / afternoon / sells"
+        type: choice
+        options: [test, morning, afternoon, sells]
+        default: test
+permissions:
+  contents: write
+concurrency:
+  group: live-trading
+  cancel-in-progress: false
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: Which part of the day, and is the live feed needed
+        id: which
+        run: |
+          case "${{ github.event.schedule }}" in
+            "20 3 * * 1-5") J=morning ;;
+            "45 6 * * 1-5") J=afternoon ;;
+            "15 9 * * 1-5") J=sells ;;
+            *) J="${{ inputs.job }}" ;;
+          esac
+          echo "job=$J" >> "$GITHUB_OUTPUT"
+          python3 paper/need_live.py "$J" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        if: steps.which.outputs.need == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Restore downloaded NSE data
+        if: steps.which.outputs.need == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: nse-data-live-${{ github.run_id }}
+          restore-keys: nse-data-
+      - name: Install
+        if: steps.which.outputs.need == 'true'
+        run: pip install -q -r requirements.txt
+      - name: Connection test
+        if: steps.which.outputs.job == 'test'
+        env:
+          UPSTOX_ACCESS_TOKEN: ${{ secrets.UPSTOX_ACCESS_TOKEN }}
+        run: python paper/live.py --test-feed 40
+      - name: Live paper trading
+        if: steps.which.outputs.need == 'true' && steps.which.outputs.job != 'test'
+        env:
+          UPSTOX_ACCESS_TOKEN: ${{ secrets.UPSTOX_ACCESS_TOKEN }}
+        run: python paper/live.py --job ${{ steps.which.outputs.job }}
+      - name: Save to the repo
+        if: always() && steps.which.outputs.need == 'true' && steps.which.outputs.job != 'test'
+        run: |
+          git config user.name "paper-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A state
+          git commit -q -m "Live paper trading $(TZ=Asia/Kolkata date '+%F %H:%M') (${{ steps.which.outputs.job }})" || { echo "Nothing new to save"; exit 0; }
+          for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done

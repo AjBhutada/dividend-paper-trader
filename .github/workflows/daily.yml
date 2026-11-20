@@ -1,0 +1,57 @@
+name: daily-paper-trading
+# 9 pm India time, after NSE publishes the day's files. Marks positions at the official close, refreshes the dividend list,
+# rebuilds the dashboard, and on the last trading day of the week opens an issue (= email) with the weekly report.
+# Anything the live trader did not handle today (laptop-free backup) is traded here on 1-minute candles.
+on:
+  schedule:
+    - cron: "30 15 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Trading date to process (YYYY-MM-DD). Leave blank for today in India."
+        required: false
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: paper-trading
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Restore downloaded NSE data
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: nse-data-${{ github.run_id }}
+          restore-keys: nse-data-
+      - run: pip install -q -r requirements.txt
+      - name: Paper-trade the day
+        run: python paper/engine.py ${{ inputs.date && format('--date {0}', inputs.date) || '' }}
+      - name: Keep the data cache small
+        run: |
+          find .cache/candles -type f -mtime +20 -delete 2>/dev/null || true
+          find .cache/lists -type f -mtime +5 -delete 2>/dev/null || true
+      - name: Save results to the repo
+        run: |
+          git config user.name "paper-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A state README.md charts dashboard.html reports
+          git commit -q -m "Paper trading: $(TZ=Asia/Kolkata date +%F)" || echo "Nothing new to save"
+          for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done
+      - name: Weekly report email (GitHub issue)
+        if: ${{ hashFiles('reports/weekly_pending.md') != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Weekly paper-trading report: $(TZ=Asia/Kolkata date +'%d %b %Y')" --body-file reports/weekly_pending.md
+          git rm -q reports/weekly_pending.md
+          git commit -q -m "Weekly report sent"
+          for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done

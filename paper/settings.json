@@ -1,0 +1,5 @@
+{
+ "watch_holding_days": false,
+ "monthly_minute_budget": 1650,
+ "_note": "Private repo (2,000 free GitHub minutes a month): the live feed is used only on buy days and sell days, and not at all for the rest of a month once the live jobs have used 1,650 minutes. If the repo becomes public (unlimited minutes): set watch_holding_days to true and monthly_minute_budget to null."
+}

@@ -1,2 +1,14 @@
 .cache/
 __pycache__/
+test_state/
+test_out/
+test_backfill.py
+test_backfill.log
+.env
+*.env
+test_replay.py
+test_replay_state/
+regress.py
+regress.log
+test_state2/
+test_out2/
