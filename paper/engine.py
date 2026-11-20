@@ -510,7 +510,7 @@ if __name__ == "__main__":
             else:
                 raise
     if HOL is not None and is_trading(today):
-        weekly = tdays(today, 1).isocalendar()[1] != today.isocalendar()[1]
+        weekly = out is not None and tdays(today, 1).isocalendar()[1] != today.isocalendar()[1]   # once per week, only when the day was processed
         sys.path.insert(0, str(Path(__file__).parent))
         from report import build
         build(Path(a.out), sd, today, RULES, weekly)
