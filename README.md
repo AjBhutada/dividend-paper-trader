@@ -1,6 +1,6 @@
 # Dividend run-up paper trading
 
-_Updated after the close on 20 Nov 2026. Paper money only: no real orders are placed._
+_Updated after the close on 21 Nov 2026. Paper money only: no real orders are placed._
 
 | | |
 |---|---|
