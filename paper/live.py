@@ -359,7 +359,7 @@ def window(job, plan, pos, today, cfg):
     sells = any(p["sell_date"] <= d for p in pos)
     watch_all = bool(cfg.get("watch_holding_days")) and bool(pos)
     if job == "morning" and (buys_open or late or watch_all):
-        return "09:13", "12:20"
+        return "09:13", ("11:52" if cfg.get("buy_hours") == "morning" and not watch_all else "12:20")
     if job == "afternoon" and (buys_open or watch_all):
         return "09:13", ("15:31" if (sells or watch_all) else "15:01")
     if job == "sells" and sells:
@@ -384,9 +384,17 @@ def main():
     if today.isoformat() < meta["start_date"]:
         print(f"{today}: paper trading starts on {meta['start_date']}."); return 0
     cfg, month = settings(), today.strftime("%Y-%m")
+    if cfg.get("buy_hours") == "morning":            # all 5 slices between 9:30 and 11:30 (tested on 2026: about the same price)
+        global BUY_SLOTS, LAST_BUY
+        BUY_SLOTS, LAST_BUY = ["09:30", "10:00", "10:30", "11:00", "11:30"], "11:50"
     pf = sd / "live" / f"{today}_plan.json"
-    if pf.exists():
-        plan = json.loads(pf.read_text()); E.log(f"{hhmm()} {a.job}: continuing today's plan (made at {plan['made_at']})")
+    plan = json.loads(pf.read_text()) if pf.exists() else None
+    nothing_bought = lambda p: not any(b["bought_qty"] for b in p["buys"])
+    if plan is not None and a.job == "morning" and hhmm() < "09:13" and nothing_bought(plan):
+        E.log(f"{hhmm()} {a.job}: planning again before the open with the newest announcements")
+        E.FRESH_H, plan = 0.2, None
+    if plan is not None:
+        E.log(f"{hhmm()} {a.job}: continuing today's plan (made at {plan['made_at']})")
     elif hhmm() >= "15:00":
         print("Too late to plan today; the 9 pm run will handle the day on 1-minute candles."); return 0
     else:
@@ -408,6 +416,16 @@ def main():
     if not token():
         E.log("No UPSTOX_ACCESS_TOKEN found; the 9 pm run will handle today on 1-minute candles.")
         tr.save(); return 1
+    if a.job == "morning" and hhmm() < "09:05" and nothing_bought(tr.plan):
+        while hhmm() < "09:05":                 # wait, then take one more look at the news just before the open
+            time.sleep(15)
+        E.FRESH_H = 0.2
+        tr.plan = build_plan(today, meta, pos)
+        E.log(f"{hhmm()} planned again at 9:05 with the newest announcements")
+        w = window(a.job, tr.plan, pos, today, cfg)
+        if w is None:
+            tr.save(); minutes_used(sd, month, (time.time() - t_start) / 60 + 1); return 0
+        start, end = w
     while hhmm() < start:
         time.sleep(15)
     keys = tr.keys()
@@ -425,7 +443,7 @@ def main():
             st, feed.last_rx = connect(tr.keys() or keys, feed), time.time()
         time.sleep(1)
     if hhmm() >= LAST_BUY:
-        for b in plan["buys"]:
+        for b in tr.plan["buys"]:
             if b["status"] == "open":
                 b["status"] = "done" if b["bought_qty"] else "not bought"
                 b["note"] = b["note"] or ("partly bought by 3 pm" if b["bought_qty"] else "no calm minute with offers before 3 pm")

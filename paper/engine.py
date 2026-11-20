@@ -17,6 +17,8 @@ import pandas as pd
 RULES = dict(START_CAPITAL=500000.0, START_DATE="2026-11-23", MIN_MCAP=500, MAX_MCAP=2500, MIN_YIELD=0.005, BIG_YIELD=0.015,
              MIN_VALUE_CR=0.2, MIN_PRICE=10.0, MAX_LOCKED=3, BUY_WINDOW=10, SPIKE_K=4.0, ORDERS=5, STOP=0.10,
              LIMIT_FRAC=0.10, PARTICIPATION=0.10, IMPACT_Y=0.5, MAX_LEVERAGE=3.0)
+if os.environ.get("PAPER_MIN_YIELD"):          # tests of other dividend cuts only
+    RULES["MIN_YIELD"] = float(os.environ["PAPER_MIN_YIELD"])
 ROOT = Path(__file__).resolve().parent.parent
 IST = timezone(timedelta(hours=5, minutes=30))
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
@@ -181,18 +183,19 @@ def announcements(d, symbols):
     """Earliest dividend / record-date news per symbol in the last 75 days (time as IST datetime)."""
     rows, start = [], d - timedelta(days=75)
     a = start - timedelta(days=start.weekday())          # Monday-to-Sunday weeks, so past weeks are downloaded once and reused
+    old = d < REAL_TODAY - timedelta(days=7)            # a test of a past day: whole weeks (downloaded once), later news dropped below
     while a <= d:
-        b = min(d, a + timedelta(days=6))
+        b = a + timedelta(days=6) if old else min(d, a + timedelta(days=6))
         name = f"ann/{a.isoformat()}_{b.isoformat()}.json"
         maker = lambda a=a, b=b: fetch(f"https://www.nseindia.com/api/corporate-announcements?index=equities&from_date={a:%d-%m-%Y}&to_date={b:%d-%m-%Y}")
-        raw = cached(name, maker, max_age_h=None if b < d - timedelta(days=2) else FRESH_H)
+        raw = cached(name, maker, max_age_h=None if (old or b < d - timedelta(days=2)) else FRESH_H)
         for x in json.loads(raw or b"[]"):
             if x.get("symbol") not in symbols:
                 continue
             txt = (x.get("desc") or "") + " " + (x.get("attchmntText") or "")
             if "dividend" in txt.lower() or "record date" in txt.lower():
                 t = pd.to_datetime(x.get("exchdisstime") or x.get("an_dt"), format="%d-%b-%Y %H:%M:%S", errors="coerce")
-                if pd.notna(t):
+                if pd.notna(t) and (not old or t.date() <= d):      # never news from after the day being run
                     rows.append((x["symbol"], t))
         a = b + timedelta(days=1)
     return pd.DataFrame(rows, columns=["symbol", "t"])

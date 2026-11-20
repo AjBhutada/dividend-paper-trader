@@ -16,3 +16,11 @@ test_2026.py
 test_2026.log
 test2026_state/
 test2026_out/
+test_2026v.py
+test2026_*_state/
+test2026_*_out/
+test_2026v_*.log
+analyse_2026.py
+dash_2026.json
+export_dash.py
+dash_*.json
