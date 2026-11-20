@@ -1,0 +1,44 @@
+# Dividend run-up paper trading
+
+_Updated after the close on 20 Nov 2026. Paper money only: no real orders are placed._
+
+| | |
+|---|---|
+| Started | 2026-11-23 with ₹5,00,000 (paper money) |
+| Equity now | ₹5,00,000 (+0.0%) |
+| Closed trades | 0 |
+| Yearly rate so far | shown after 3 months |
+| Nifty Smallcap 250 since start | - |
+| Open positions | 0 using ₹0 of margin |
+| Per-share limit this quarter | ₹50,000 (2026Q4) |
+| Backtest expectation | about +2.3% per trade on the position, about 60% winners |
+
+![Equity](charts/equity.png)
+
+## Open positions
+_None yet._
+
+## Dividends being watched (next 25 trading days)
+_None yet._
+
+## Closed trades (latest 30)
+_None yet._
+
+## Month by month
+_None yet._
+
+## Skipped dividends and why
+| Stock | Ex-date | Dividend % | Mcap (₹ cr) | Why skipped |
+|---|---|---|---|---|
+| FUSIONCX | 2026-11-27 | 0.26 |  | market cap outside 500-2,500 cr; dividend < 0.5% |
+| PASHUPATI | 2026-11-23 | 0.02 | 247.0 | market cap outside 500-2,500 cr; dividend < 0.5%; bonus/split/rights nearby |
+| VRAJ | 2026-11-25 | 0.5 | 398.0 | market cap outside 500-2,500 cr; dividend < 0.5%; too little trading |
+
+## Rules in short
+- NSE EQ shares of ₹500–2,500 cr with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
+- Buy on the later of 10 trading days before the ex-date and the first trading day after the record-date news, at the average of calm 1-minute candles (no volume spikes), in 5 orders.
+- Sell at the close of the last cum day; 10% stop-loss below the buy price.
+- Size: 10% of capital at the start of each quarter as margin per share (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
+- Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
+
+Interactive version: download `dashboard.html` from this repo and open it in a browser. Research and paper trading only, not investment advice.

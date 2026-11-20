@@ -1,0 +1,4 @@
+symbol,ex_date,last_cum_day,dividend,buy_day,status,reason,dividend_pct,mcap_cr
+FUSIONCX,2026-11-27,2026-11-26,0.75,2026-11-16,skip,"market cap outside 500-2,500 cr; dividend < 0.5%",0.26,
+PASHUPATI,2026-11-23,2026-11-20,0.02,2026-11-06,skip,"market cap outside 500-2,500 cr; dividend < 0.5%; bonus/split/rights nearby",0.02,247.0
+VRAJ,2026-11-25,2026-11-23,0.6,2026-11-16,skip,"market cap outside 500-2,500 cr; dividend < 0.5%; too little trading",0.5,398.0
