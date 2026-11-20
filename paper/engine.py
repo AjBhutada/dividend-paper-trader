@@ -124,6 +124,7 @@ def history(d, n=90):
 
 
 REAL_TODAY = datetime.now(IST).date()
+FRESH_H = 3        # today's dividend lists are downloaded again when older than this (hours); the live trader lowers it before the open
 
 
 def candles(isin, d, today):
@@ -159,7 +160,7 @@ def corp_actions(d):
     def make():
         f, t = d - timedelta(days=130), d + timedelta(days=45)
         return fetch(f"https://www.nseindia.com/api/corporates-corporateActions?index=equities&from_date={f:%d-%m-%Y}&to_date={t:%d-%m-%Y}")
-    ca = pd.DataFrame(json.loads(cached(f"ca/{d.isoformat()}.json", make, max_age_h=None if d < REAL_TODAY else 6)))   # today: refresh, new dividends appear all day
+    ca = pd.DataFrame(json.loads(cached(f"ca/{d.isoformat()}.json", make, max_age_h=None if d < REAL_TODAY else FRESH_H)))   # today: refresh, new dividends appear all day
     if not len(ca):
         return ca
     ca["ex"] = pd.to_datetime(ca.exDate, format="%d-%b-%Y", errors="coerce").dt.date
@@ -179,12 +180,12 @@ def corp_actions(d):
 def announcements(d, symbols):
     """Earliest dividend / record-date news per symbol in the last 75 days (time as IST datetime)."""
     rows, start = [], d - timedelta(days=75)
-    a = start
+    a = start - timedelta(days=start.weekday())          # Monday-to-Sunday weeks, so past weeks are downloaded once and reused
     while a <= d:
         b = min(d, a + timedelta(days=6))
         name = f"ann/{a.isoformat()}_{b.isoformat()}.json"
         maker = lambda a=a, b=b: fetch(f"https://www.nseindia.com/api/corporate-announcements?index=equities&from_date={a:%d-%m-%Y}&to_date={b:%d-%m-%Y}")
-        raw = cached(name, maker, max_age_h=None if b < d - timedelta(days=2) else 3)
+        raw = cached(name, maker, max_age_h=None if b < d - timedelta(days=2) else FRESH_H)
         for x in json.loads(raw or b"[]"):
             if x.get("symbol") not in symbols:
                 continue
@@ -198,9 +199,11 @@ def announcements(d, symbols):
 
 
 def mtf_lists(d):
-    kite = pd.DataFrame(json.loads(cached(f"lists/kite_{d}.json", lambda: fetch("https://public.zrd.sh/crux/approved-mtf-securities.json"))))
+    """Brokers publish only their current lists, so every run (also a test of a past day) uses today's lists, downloaded once a day."""
+    k = REAL_TODAY.isoformat()
+    kite = pd.DataFrame(json.loads(cached(f"lists/kite_{k}.json", lambda: fetch("https://public.zrd.sh/crux/approved-mtf-securities.json"))))
     kite = dict(zip(kite.tradingsymbol, kite.margin / 100))
-    up = json.loads(gzip.decompress(cached(f"lists/upstox_{d}.json.gz", lambda: fetch("https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz"))))
+    up = json.loads(gzip.decompress(cached(f"lists/upstox_{k}.json.gz", lambda: fetch("https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz"))))
     isin = {x["trading_symbol"]: x["isin"] for x in up if x.get("segment") == "NSE_EQ"}
     ups = {x["trading_symbol"]: (x.get("mtf_bracket") or 33.3) / 100 for x in up if x.get("segment") == "NSE_EQ" and x.get("mtf_enabled")}
     gw = pd.read_csv(ROOT / "paper/lists/groww_mtf_list.csv")
@@ -497,7 +500,7 @@ def index_close(d):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date"); ap.add_argument("--state", default=str(ROOT / "state")); ap.add_argument("--start"); ap.add_argument("--out", default=str(ROOT))
+    ap.add_argument("--date"); ap.add_argument("--state", default=str(ROOT / "state")); ap.add_argument("--start"); ap.add_argument("--out", default=str(ROOT)); ap.add_argument("--no-report", action="store_true")
     a = ap.parse_args()
     today = date.fromisoformat(a.date) if a.date else datetime.now(IST).date()
     sd = Path(a.state)
@@ -509,7 +512,7 @@ if __name__ == "__main__":
                 log(str(ex) + "; waiting 15 minutes"); time.sleep(900)
             else:
                 raise
-    if HOL is not None and is_trading(today):
+    if HOL is not None and is_trading(today) and not a.no_report:
         weekly = out is not None and tdays(today, 1).isocalendar()[1] != today.isocalendar()[1]   # once per week, only when the day was processed
         sys.path.insert(0, str(Path(__file__).parent))
         from report import build

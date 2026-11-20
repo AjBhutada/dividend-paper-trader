@@ -1,14 +1,17 @@
 name: live-paper-trading
 # Real-time paper trading on the Upstox live feed (no real orders). Three parts of the day, India time:
-#   8:50 am  morning: plan the day (new dividends + all rules); live buying until 12:20 if a dividend is bought today
-#   12:15 pm afternoon: live buying until 3:00 pm on buy days (until 3:30 pm if a sale is due too)
-#   2:45 pm  sells: live selling at 3:05 / 3:20 pm on a last cum day
+#   8:27 am  morning: plan the day (new dividends + all rules); on a buy day wait for the open, live buying until 12:20
+#   8:52 am  morning again: spare start in case GitHub delays or skips the first (does nothing if the first is running)
+#   11:40 am afternoon: queued behind the morning job, so it starts the moment that ends; buying until 3:00 pm (3:30 pm if a sale is due)
+#   2:15 pm  sells: waits, then live selling at 3:05 / 3:20 pm on a last cum day
+# Each job starts 20-45 minutes early so GitHub's usual start delays do not make it late.
 # On quiet days each part takes about a minute. The 9 pm workflow (daily.yml) finishes the day and backs up anything missed.
 on:
   schedule:
-    - cron: "20 3 * * 1-5"
-    - cron: "45 6 * * 1-5"
-    - cron: "15 9 * * 1-5"
+    - cron: "57 2 * * 1-5"
+    - cron: "22 3 * * 1-5"
+    - cron: "10 6 * * 1-5"
+    - cron: "45 8 * * 1-5"
   workflow_dispatch:
     inputs:
       job:
@@ -31,9 +34,9 @@ jobs:
         id: which
         run: |
           case "${{ github.event.schedule }}" in
-            "20 3 * * 1-5") J=morning ;;
-            "45 6 * * 1-5") J=afternoon ;;
-            "15 9 * * 1-5") J=sells ;;
+            "57 2 * * 1-5"|"22 3 * * 1-5") J=morning ;;
+            "10 6 * * 1-5") J=afternoon ;;
+            "45 8 * * 1-5") J=sells ;;
             *) J="${{ inputs.job }}" ;;
           esac
           echo "job=$J" >> "$GITHUB_OUTPUT"

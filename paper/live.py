@@ -361,7 +361,7 @@ def window(job, plan, pos, today, cfg):
     if job == "morning" and (buys_open or late or watch_all):
         return "09:13", "12:20"
     if job == "afternoon" and (buys_open or watch_all):
-        return "12:15", ("15:31" if (sells or watch_all) else "15:01")
+        return "09:13", ("15:31" if (sells or watch_all) else "15:01")
     if job == "sells" and sells:
         return "14:58", "15:31"
     return None
