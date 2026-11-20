@@ -1,10 +1,11 @@
 name: daily-paper-trading
 # 9 pm India time, after NSE publishes the day's files. Marks positions at the official close, refreshes the dividend list,
 # rebuilds the dashboard, and on the last trading day of the week opens an issue (= email) with the weekly report.
-# Anything the live trader did not handle today (laptop-free backup) is traded here on 1-minute candles.
+# Anything the live trader did not handle today is traded here on 1-minute candles, and a day a skipped run left out is caught up.
 on:
   schedule:
-    - cron: "30 15 * * 1-5"
+    - cron: "30 15 * * 1-5"        # 9:00 pm India
+    - cron: "0 18 * * 1-5"         # 11:30 pm India: spare start in case GitHub skips the first (does nothing if the day is done)
   workflow_dispatch:
     inputs:
       date:

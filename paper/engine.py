@@ -507,16 +507,34 @@ if __name__ == "__main__":
     a = ap.parse_args()
     today = date.fromisoformat(a.date) if a.date else datetime.now(IST).date()
     sd = Path(a.state)
-    for k in range(4):                       # NSE publishes the bhavcopy in the evening; wait for it if needed
-        try:
-            out = run(today, sd, a.start); break
-        except RuntimeError as ex:
-            if "not published" in str(ex) and k < 3:
-                log(str(ex) + "; waiting 15 minutes"); time.sleep(900)
-            else:
-                raise
-    if HOL is not None and is_trading(today) and not a.no_report:
-        weekly = out is not None and tdays(today, 1).isocalendar()[1] != today.isocalendar()[1]   # once per week, only when the day was processed
+    HOL = holidays()
+    days = [today]
+    if not a.date:                           # catch up on any trading day a skipped or failed run left out (oldest first, at most 10)
+        last = json.loads((sd / "meta.json").read_text()).get("last_run") if (sd / "meta.json").exists() else None
+        if last:
+            x, missed = date.fromisoformat(last) + timedelta(days=1), []
+            while x < today:
+                if is_trading(x):
+                    missed.append(x)
+                x += timedelta(days=1)
+            days = missed[-10:] + [today]
+            if missed:
+                log(f"Catching up on {len(missed[-10:])} missed trading day(s): {', '.join(str(m) for m in missed[-10:])}")
+    weekly = False
+    for d in days:
+        out = None
+        for k in range(4):                   # NSE publishes the bhavcopy in the evening; wait for it if needed
+            try:
+                out = run(d, sd, a.start); break
+            except RuntimeError as ex:
+                if "not published" in str(ex) and k < 3 and d == today:
+                    log(str(ex) + "; waiting 15 minutes"); time.sleep(900)
+                else:
+                    raise
+        if out is not None and is_trading(d) and tdays(d, 1).isocalendar()[1] != d.isocalendar()[1]:
+            weekly = True                    # a processed day that ends its week: send that week's report (once)
+        LOG.clear() if d != today else None
+    if HOL is not None and not a.no_report:
         sys.path.insert(0, str(Path(__file__).parent))
         from report import build
         build(Path(a.out), sd, today, RULES, weekly)
