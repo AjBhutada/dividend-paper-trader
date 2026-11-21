@@ -24,3 +24,7 @@ analyse_2026.py
 dash_2026.json
 export_dash.py
 dash_*.json
+export_cuts.py
+test_2026v_all.log
+tmp_catch/
+tmp_catch_out/
