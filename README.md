@@ -32,8 +32,8 @@ _None yet._
 ## Skipped dividends and why
 | Stock | Ex-date | Dividend % | Mcap (₹ cr) | Why skipped |
 |---|---|---|---|---|
-| FUSIONCX | 2026-11-27 | 0.26 |  | market cap outside 500-8,000 cr; dividend 0.262% is below 0.5% |
-| VRAJ | 2026-11-25 | 0.5 | 398.0 | market cap outside 500-8,000 cr; dividend 0.499% is below 0.5%; too little trading |
+| FUSIONCX | 2026-11-27 | 0.26 |  | market cap unknown (not in the NSE/AMFI share list); dividend 0.262% is below 0.5% |
+| VRAJ | 2026-11-25 | 0.5 | 398.0 | market cap Rs 398 cr, outside 500-8,000 cr; dividend 0.499% is below 0.5%; too little trading |
 
 ## Rules in short
 - NSE EQ shares of ₹500–8,000 cr (₹500–2,500 cr first; ₹2,500–8,000 cr only when 20% of the account stays free afterwards) with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
