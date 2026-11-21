@@ -408,7 +408,7 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             if not (RULES["MIN_MCAP"] <= mc <= top):
                 reasons.append(f"market cap outside 500-{top:,.0f} cr")
             if not (np.isfinite(y) and y >= RULES["MIN_YIELD"]):
-                reasons.append("dividend < 0.5%")
+                reasons.append(f"dividend {100 * y:.3f}% is below 0.5%" if np.isfinite(y) else "dividend % unknown (no price 21 days before)")
             if (h.series != "EQ").any():
                 reasons.append("not normal EQ series")
             if not len(win) or win.value_cr.median() < RULES["MIN_VALUE_CR"]:
@@ -445,7 +445,9 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             st["status"] = "buy today"
             due.append(entry())
         if np.isfinite(mc):
-            st["range"] = "500-2,500 cr (priority)" if mc <= RULES["MAX_MCAP"] else "2,500-8,000 cr (idle money)"
+            top_cap = SET().get("tier2_max_mcap") or RULES["MAX_MCAP"]
+            st["range"] = ("below 500 cr" if mc < RULES["MIN_MCAP"] else "500-2,500 cr (priority)" if mc <= RULES["MAX_MCAP"] else
+                           f"2,500-{top_cap:,.0f} cr (idle money)" if mc <= top_cap else f"above {top_cap:,.0f} cr")
         rows.append(st)
     # same-day signals: Rs 500-2,500 cr first, then bigger dividend first. A Rs 2,500-8,000 cr stock is bought only with idle
     # money: after paying for it, at least tier2_reserve_frac (20%) of the account must stay free for Rs 500-2,500 cr dividends.
@@ -678,6 +680,29 @@ def run(today, sd, start=None):
     return meta, pos, trades, eqdf, signals
 
 
+def refresh_signals(today, sd):
+    """Weekend or holiday: check the coming dividends again for the next trading day (the newest NSE lists, today's rules and
+    block list, the last trading day's prices), exactly as the morning plan will, so the dashboard never shows an old check.
+    Only signals.csv and blocked.json change; the account, positions and trades are not touched."""
+    global HOL
+    HOL = holidays()
+    meta, pos, _, _ = load_state(sd)
+    nxt = tdays(today, 1)
+    prev = tdays(nxt, -1)
+    H = history(prev)
+    if prev.isoformat() not in set(H.date):
+        log(f"{today}: prices for {prev} not available; dividend list not refreshed"); return
+    T = H[H.date == prev.isoformat()].set_index("symbol")
+    kite, ups, groww, ISIN = mtf_lists(nxt)
+    update_quarter(nxt, meta, pos)                          # in memory only (sizes the 'would have' notes); meta is not saved
+    rows, _, _ = evaluate_signals(nxt, H, T, meta, pos, kite, ups, groww, ISIN)
+    pd.DataFrame(rows).to_csv(sd / "signals.csv", index=False)
+    if SET().get("block_losing_years"):
+        (sd / "blocked.json").write_text(json.dumps(block_list(track_record(sd, meta), nxt.isoformat()), indent=1))
+    log(f"{today}: not a trading day; dividends checked again for {nxt}: {len(rows)} coming up, "
+        f"{sum(r['status'] not in ('skip', 'blocked') for r in rows)} passing the rules")
+
+
 def index_close(d):
     b = cached(f"index/{d.isoformat()}.csv", lambda: fetch(f"https://nsearchives.nseindia.com/content/indices/ind_close_all_{d:%d%m%Y}.csv"))
     if b is None:
@@ -725,6 +750,11 @@ if __name__ == "__main__":
                     log(str(ex) + "; waiting 15 minutes"); time.sleep(900)
                 else:
                     raise
+        if out is None and d == today and not a.date and not a.start and not is_trading(d):
+            try:                             # weekend / holiday: keep the dashboard's dividend list current
+                refresh_signals(d, sd)
+            except Exception as ex:          # display only: never fail the run for it
+                log(f"{d}: could not refresh the dividend list ({type(ex).__name__}: {ex})")
         if out is not None and is_trading(d) and tdays(d, 1).isocalendar()[1] != d.isocalendar()[1]:
             weekly = True                    # a processed day that ends its week: send that week's report (once)
         LOG.clear() if d != today else None
