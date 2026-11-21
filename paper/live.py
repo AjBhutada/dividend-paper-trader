@@ -99,6 +99,8 @@ class Feed:
                     s["asks"] = [(float(x["askP"]), float(x["askQ"])) for x in q if x.get("askP") and float(x.get("askQ") or 0) > 0]
                 if lt.get("ltp"):
                     s["ltp"] = float(lt["ltp"])
+                if lt.get("cp"):
+                    s["cp"] = float(lt["cp"])                 # previous close
                 vtt = float(ff.get("vtt") or s.get("vtt") or 0)
                 s.update(vtt=vtt, atp=float(ff.get("atp") or s.get("atp") or 0), rx=now.timestamp())
                 cur_start = int(now.timestamp() // 60 * 60 * 1000)
@@ -164,6 +166,7 @@ def build_plan(today, meta, pos):
         base = float(c.v[c.v > 0].median()) if len(c) and (c.v > 0).any() else None
         plan["buys"].append(dict(symbol=b["symbol"], isin=b["isin"], key=f"NSE_EQ|{b['isin']}", broker=b["broker"], mfrac=b["mfrac"], target=round(b["target"]),
                                  sigma=b["sigma"], ex=b["ex"], cum=b["cum"], dividend_pct=b["dividend_pct"], mcap_cr=b["mcap_cr"], tier=b.get("tier", 1), base_minute_vol=base,
+                                 dividend=b["signal"].get("dividend"),
                                  slices=0, bought_qty=0, bought_value=0.0, status="open", note=""))
         E.log(f"PLAN buy {b['symbol']} ({b['broker']}): target position Rs {b['target']:,.0f}, dividend {b['dividend_pct']}%, "
               f"sell on {b['cum']}, previous day's median minute volume {base}")
@@ -285,6 +288,11 @@ class Trader:
             qty, why, gap, leg = left, "10% stop", 10, "stop"
         elif p["sell_date"] < d and t >= LATE_SELL:
             qty, why, leg = left, "late sell (missed last cum day)", "late"
+        elif p["sell_date"] == d and t >= SELL_SLOTS[0] and not s.get("asks") and s.get("ltp") and s.get("cp") and s["ltp"] >= s["cp"] * 1.049:
+            if p.get("upper_hold") != d:                   # locked at the upper circuit (nobody selling): keep it, sell tomorrow at 9:20 am
+                p["upper_hold"] = d
+                E.log(f"{t} {p['symbol']}: at the upper circuit on its last cum day; holding one more day (dividend will be received)")
+            return
         elif p["sell_date"] == d:                          # half sold from 3:05 pm, all of it from 3:20 pm
             target = p["qty"] if t >= SELL_SLOTS[1] else p["qty"] / 2 if t >= SELL_SLOTS[0] else 0
             qty, why, leg = target - ex["sold_qty"], "last cum day", ("second half" if t >= SELL_SLOTS[1] else "first half")

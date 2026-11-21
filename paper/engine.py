@@ -415,7 +415,8 @@ def open_position(b, avg_px, qty, today, meta, buy_impact=0.0, mode="1-minute ca
     meta["cash"] -= margin
     p = dict(symbol=b["symbol"], isin=b.get("isin"), broker=b["broker"], margin_frac=b["mfrac"], buy_date=today.isoformat(), sell_date=b["cum"], ex_date=b["ex"],
              avg_cost=round(avg_px, 2), qty=qty, position=V, margin=margin, sigma=b["sigma"], buy_impact=buy_impact, dividend_pct=b["dividend_pct"],
-             mcap_cr=b["mcap_cr"], stop=round(avg_px * (1 - RULES["STOP"]), 2), buy_mode=mode, buy_orders=RULES["ORDERS"], tier=b.get("tier", 1))
+             mcap_cr=b["mcap_cr"], stop=round(avg_px * (1 - RULES["STOP"]), 2), buy_mode=mode, buy_orders=RULES["ORDERS"], tier=b.get("tier", 1),
+             dividend_rs=b.get("dividend") or (b.get("signal") or {}).get("dividend"))
     log(f"BUY {p['symbol']} ({p['broker']}) at {avg_px:.2f}, position Rs {V:,.0f}, margin Rs {margin:,.0f}, sell on {p['sell_date']}, stop {p['stop']} [{mode}]")
     return p
 
@@ -436,12 +437,15 @@ def close_position(p, exit_px, how, today, meta, trades, n_sell_orders=2, day_va
     ch = charges(p["broker"], p["position"], sell_val, p.get("buy_orders", RULES["ORDERS"]), max(n_sell_orders, 1), 1)
     intr = interest(p["broker"], p["position"] * (1 - p["margin_frac"]), days)
     pnl = sell_val - p["position"] - ch - intr - (p.get("buy_impact", 0.0) + imp) * p["position"]
+    div_rcv = 0.0
+    if today.isoformat() >= p["ex_date"] and p.get("dividend_rs"):  # still held on the ex-date: the dividend is ours
+        div_rcv = float(p["dividend_rs"]) * p["qty"]; pnl += div_rcv
     meta["cash"] += p["margin"] + pnl
     row = dict(symbol=p["symbol"], broker=p["broker"], dividend_pct=p["dividend_pct"], mcap_cr=p["mcap_cr"], buy_date=p["buy_date"],
                avg_cost=p["avg_cost"], sell_date=today.isoformat(), exit_price=round(exit_px, 2), exit_reason=how, position=round(p["position"]),
                margin=round(p["margin"]), charges=round(ch + intr), impact=round((p.get("buy_impact", 0.0) + imp) * p["position"]), pnl=round(pnl),
                pnl_pct_position=round(100 * pnl / p["position"], 2), pnl_pct_margin=round(100 * pnl / p["margin"], 2), days=days, ex_date=p["ex_date"],
-               buy_mode=p.get("buy_mode", "1-minute candles"), sell_mode=mode, tier=p.get("tier", 1))
+               buy_mode=p.get("buy_mode", "1-minute candles"), sell_mode=mode, tier=p.get("tier", 1), dividend_received=round(div_rcv))
     log(f"SELL {p['symbol']} at {exit_px:.2f} ({how}): P&L Rs {pnl:,.0f} ({row['pnl_pct_margin']:+.1f}% on margin) [{mode}]")
     return pd.concat([trades, pd.DataFrame([row])], ignore_index=True)
 
@@ -490,8 +494,11 @@ def run(today, sd, start=None):
                 exit_px, how = r.open * 0.998, "10% stop (gap)"
             elif r.low <= stop:
                 exit_px, how = stop * 0.998, "10% stop"
-        if exit_px is None and today.isoformat() >= p["sell_date"]:
-            exit_px, how = r.close * 0.9995, "last cum day close"
+        upper = today.isoformat() == p["sell_date"] and r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
+        if exit_px is None and upper:
+            log(f"{p['symbol']}: closed at the upper circuit on its last cum day; held one more day (dividend will be received)")
+        if exit_px is None and today.isoformat() >= p["sell_date"] and not upper:
+            exit_px, how = r.close * 0.9995, ("last cum day close" if today.isoformat() == p["sell_date"] else "day after an upper circuit (with dividend)")
         if exit_px is None:
             keep.append(p); continue
         sold = p.get("selling") or {}
