@@ -149,7 +149,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       <li>Buy day: the later of 10 trading days before the ex-date and the first trading day after the record-date news (it must be at least 2 days before the ex-date). The plan is made at 8:27 am and checked again at 9:05 am with the newest announcements.</li>
       <li>Buying: 5 slices (9:30, 10:30, 11:30 am, 12:45 and 2:00 pm), each only in a calm minute (no volume spike), filled against the live offers on the Upstox feed, never more than 10% of the volume traded so far.</li>
       <li>Selling: half at 3:05 pm and the rest at 3:20 pm on the last cum day, against the live bids. A 10% stop-loss below the buy price is watched on every tick from the day after buying.</li>
-      <li>Size: 10% of the account per share as margin, reset at the start of each quarter (₹50,000 now); twice that for cash trades with a dividend of 1.5% or more. MTF only on stocks in Kite's, Upstox's or Groww's real lists (in that order), otherwise cash.</li>
+      <li>Size: ₹50,000 of margin per share for this paper test, fixed throughout; twice that for cash trades with a dividend of 1.5% or more. (The past-data tests used 10% of the account, reset each quarter.) MTF only on stocks in Kite's, Upstox's or Groww's real lists (in that order), otherwise cash.</li>
       <li>Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP and pledge charges, and MTF interest. Backup trades on 1-minute candles also carry a price-impact estimate.</li>
       <li>The 9 pm run marks positions at NSE's official close, and trades anything the live trader missed on 1-minute candles. Any problem opens a GitHub issue, which emails the owner.</li>
     </ul>
@@ -222,7 +222,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     add('Profit booked', inr(S.booked), S.n ? 'after ' + inr(S.costs) + ' of costs' : 'from closed trades', S.booked);
     add('Open positions', String(S.open), S.open ? inr(S.inUse) + ' of margin in use, ' + inr(S.unreal) + ' unrealised' : 'nothing held');
     add('Worst fall from a high', pct(S.dd), S.ddDate ? 'on ' + fmtDate(S.ddDate) : '', S.dd < 0 ? -1 : 0);
-    add('Per-share limit', inr(D.meta.limit), (D.meta.quarter || '') + ' · cash trades with a dividend of 1.5%+ get twice this');
+    add('Per-share limit', inr(D.meta.limit), (D.settings && D.settings.fixed_limit && !D.note ? 'fixed for this test' : (D.meta.quarter || '')) + ' · cash trades with a dividend of 1.5%+ get twice this');
   }
 
   function stats(D) {

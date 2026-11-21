@@ -2,7 +2,7 @@
 
 **Dashboard: https://ajbhutada.github.io/dividend-paper-trader/**
 
-_Updated after the close on 21 Nov 2026. Paper money only: no real orders are placed._
+_Updated after the close on 20 Nov 2026. Paper money only: no real orders are placed._
 
 | | |
 |---|---|
@@ -40,7 +40,7 @@ _None yet._
 - NSE EQ shares of ₹500–2,500 cr with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
 - Buy on the later of 10 trading days before the ex-date and the first trading day after the record-date news, at the average of calm 1-minute candles (no volume spikes), in 5 orders.
 - Sell at the close of the last cum day; 10% stop-loss below the buy price.
-- Size: 10% of capital at the start of each quarter as margin per share (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
+- Size: Rs 50,000 margin per share for the paper test (fixed; the past-data tests used 10% of capital at each quarter's start) (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
 **Live dashboard: https://ajbhutada.github.io/dividend-paper-trader/** (updated after every bot job). Example with a full year of past-data trades: https://ajbhutada.github.io/dividend-paper-trader/example-2026/. Research and paper trading only, not investment advice.

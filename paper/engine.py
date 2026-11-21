@@ -135,6 +135,7 @@ def history(d, n=90):
 
 
 REAL_TODAY = datetime.now(IST).date()
+TEST_RUN = False    # set by tests of past data (--start), which keep the quarterly 10% limit
 FRESH_H = 3        # today's dividend lists are downloaded again when older than this (hours); the live trader lowers it before the open
 
 
@@ -281,8 +282,16 @@ def save_state(sd, meta, pos, trades, eq, signals):
 
 # ---------------------------------------------------------------- shared steps (used by the end-of-day run and the live trader)
 def update_quarter(today, meta, pos):
-    """Per-share limit = 10% of capital at the start of each quarter (Jan/Apr/Jul/Oct)."""
+    """Per-share limit = 10% of capital at the start of each quarter (Jan/Apr/Jul/Oct), unless paper/settings.json sets
+    "fixed_limit" (the live paper test keeps Rs 50,000 throughout). Tests of past data pass --start and ignore the fixed limit."""
     q = f"{today.year}Q{(today.month - 1) // 3 + 1}"
+    st = ROOT / "paper/settings.json"
+    fixed = json.loads(st.read_text()).get("fixed_limit") if st.exists() and not TEST_RUN else None
+    if fixed:
+        if meta.get("limit") != float(fixed) or meta.get("quarter") != q:
+            meta["quarter"], meta["limit"] = q, float(fixed)
+            log(f"Per-share limit Rs {meta['limit']:,.0f} (fixed for the paper test)")
+        return
     if meta.get("quarter") != q:
         eq = meta["cash"] + sum(p["margin"] for p in pos)
         meta["quarter"], meta["limit"] = q, RULES["LIMIT_FRAC"] * eq
@@ -521,6 +530,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--date"); ap.add_argument("--state", default=str(ROOT / "state")); ap.add_argument("--start"); ap.add_argument("--out", default=str(ROOT)); ap.add_argument("--no-report", action="store_true")
     a = ap.parse_args()
+    TEST_RUN = bool(a.start)
     today = date.fromisoformat(a.date) if a.date else datetime.now(IST).date()
     sd = Path(a.state)
     HOL = holidays()

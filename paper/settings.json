@@ -1,7 +1,9 @@
 {
+ "fixed_limit": 50000,
  "buy_hours": "whole_day",
  "watch_holding_days": true,
  "monthly_minute_budget": null,
  "_note": "Public repository: GitHub minutes are unlimited, so held shares are watched live all day for the stop and there is no minutes limit. For a private repository (2,000 free minutes a month) set watch_holding_days to false and monthly_minute_budget to 1650.",
- "_note_buy_hours": "whole_day = 5 slices 9:30 am - 2:00 pm (as tested for 5 years); morning = 5 slices 9:30 - 11:30 am, about half the GitHub minutes per buy day."
+ "_note_buy_hours": "whole_day = 5 slices 9:30 am - 2:00 pm (as tested for 5 years); morning = 5 slices 9:30 - 11:30 am, about half the GitHub minutes per buy day.",
+ "_note_fixed_limit": "Margin per share for the live paper test, fixed at Rs 50,000 (cash trades with a dividend of 1.5% or more get twice this). Remove it (or set null) to use 10% of capital at each quarter's start."
 }
