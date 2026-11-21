@@ -7,10 +7,13 @@ record-date announcements and corporate actions (fresh download, so a dividend a
 From 9:15 am to 3:30 pm it reads every tick of those shares (last price, 5 best bids and offers, volume traded) and
   - buys in 5 slices (9:30, 10:30, 11:30, 12:45, 2:00 pm). A slice is bought only in a calm minute: neither the last
     minute's volume nor the current minute's volume so far is above 4x the previous day's median minute volume.
-    The slice is filled against the live offers (walking up the 5 levels), and our total never exceeds 10% of the volume
-    traded so far today. Slices not filled by 3:00 pm are dropped.
+    Each order takes only the shares really offered at that second within 1% of the best offer (up to 30 levels of the
+    book), at those offers' prices, and our total never exceeds 10% of the volume traded so far today. What the book
+    cannot take is bought in later orders (at most 12 per stock). Anything not bought by 3:00 pm is dropped.
   - sells a whole position against the live bids if the price falls 10% below its buy price (from the day after buying),
-  - on the last cum day sells half at 3:05 pm and the rest at 3:20 pm against the live bids (any remainder at 3:27 pm).
+  - on the last cum day sells half from 3:05 pm and the rest from 3:20 pm, each order taking only the shares really bid for
+    within 1% of the best bid, every 30 seconds until done. Whatever is still unsold at 3:29 pm is counted 1% under the
+    lowest bid shown, and reported.
 It saves its state every few minutes, so a restart (or the afternoon job on GitHub) continues where it stopped.
 
 Usage (one call per part of the day; GitHub runs them at 8:50 am, 12:15 pm and 2:45 pm):
@@ -38,7 +41,10 @@ BUY_SLOTS = ["09:30", "10:30", "11:30", "12:45", "14:00"]
 LAST_BUY = "15:00"
 SELL_SLOTS = ["15:05", "15:20"]
 FORCE_SELL = "15:27"
-LATE_SELL = "09:20"
+LAST_CHANCE = "15:29"      # last cum day: whatever the bids could not take by now is sold 1% under the lowest bid shown (and reported)
+DEPTH_BAND = 0.01          # an order takes only the quantity offered (or bid) within 1% of the best price at that second
+MAX_BUY_ORDERS = 12        # at most 12 buy orders per stock (brokerage is charged per order)
+FEED_MODE = "full_d30"     # Upstox Plus: up to 30 levels of bids and offersLATE_SELL = "09:20"
 MODE = "live ticks"
 
 
@@ -238,48 +244,66 @@ class Trader:
         remaining = b["target"] - b["bought_value"]
         value = remaining / (R["ORDERS"] - b["slices"])
         best = s["asks"][0][0]
-        qty = math.floor(value / best)
-        qty = min(qty, math.floor(R["PARTICIPATION"] * s.get("vtt", 0) - b["bought_qty"]))      # never more than 10% of today's volume so far
-        qty = min(qty, math.floor(self.meta["cash"] / (best * b["mfrac"] * 1.003)))            # free capital
+        want = math.floor(value / best)
+        depth = math.floor(sum(q for px_, q in s["asks"] if px_ <= best * (1 + DEPTH_BAND)))    # shares really offered right now, near the best offer
+        room = math.floor(R["PARTICIPATION"] * s.get("vtt", 0) - b["bought_qty"])              # never more than 10% of today's volume so far
+        cash = math.floor(self.meta["cash"] / (best * b["mfrac"] * 1.003))                    # free capital
+        qty = min(want, depth, room, cash)
         if qty < 1:
+            if not b.get("thin_noted_slice") == b["slices"]:
+                b["thin_noted_slice"] = b["slices"]
+                E.log(f"{t} {b['symbol']}: waiting - wanted {want}, offered near the best price {depth}, 10%-of-volume room {room}")
             return
         px = walk(s["asks"], qty, "buy")
-        self.fill(b["symbol"], "BUY", qty, px, s, f"slice {b['slices'] + 1} of {R['ORDERS']}")
+        cut = qty < want                                   # the book or the volume could not take the whole slice: the rest stays due
+        b["orders"] = b.get("orders", 0) + 1
+        self.fill(b["symbol"], "BUY", qty, px, s, f"slice {b['slices'] + 1} of {R['ORDERS']}" + (" (part: limited by offers/volume)" if cut else ""))
         p = next((p for p in self.pos if p["symbol"] == b["symbol"]), None)
         if p is None:
             p = E.open_position(b, px, qty, self.today, self.meta, buy_impact=0.0, mode=MODE)
             self.pos.append(p)
         else:
             E.add_to_position(p, qty, px, self.meta)
-        b["slices"] += 1; b["bought_qty"] += qty; b["bought_value"] += qty * px; b["last_order_ts"] = now
-        p["buy_orders"] = b["slices"]
-        if b["slices"] >= R["ORDERS"] or b["bought_value"] >= b["target"] * 0.98:
-            b["status"] = "done"; b["note"] = f"{b['slices']} slices, average {p['avg_cost']}"
+        if not cut:
+            b["slices"] += 1
+        b["bought_qty"] += qty; b["bought_value"] += qty * px; b["last_order_ts"] = now
+        p["buy_orders"] = b["orders"]
+        if b["slices"] >= R["ORDERS"] or b["bought_value"] >= b["target"] * 0.98 or b["orders"] >= MAX_BUY_ORDERS:
+            b["status"] = "done"; b["note"] = f"{b['orders']} orders, average {p['avg_cost']}"
 
     def try_exit(self, p, t):
         s = self.feed.snap.get(f"NSE_EQ|{p.get('isin')}")
         if not s:
             return
         ex = p.setdefault("selling", dict(sold_qty=0.0, sold_value=0.0, orders=0, reason=None))
+        ex.setdefault("last_ts", 0)
         left = p["qty"] - ex["sold_qty"]
-        d = self.today.isoformat()
-        qty, why = 0.0, None
-        if p["buy_date"] < d and ex["orders"] == 0 and s.get("ltp") and s["ltp"] <= p["stop"]:
-            qty, why = left, "10% stop"
+        d, now = self.today.isoformat(), CLOCK.now().timestamp()
+        qty, why, gap = 0.0, None, 30
+        if p["buy_date"] < d and s.get("ltp") and (ex["reason"] == "10% stop" or (ex["orders"] == 0 and s["ltp"] <= p["stop"])):
+            qty, why, gap = left, "10% stop", 10
         elif p["sell_date"] < d and t >= LATE_SELL:
             qty, why = left, "late sell (missed last cum day)"
-        elif p["sell_date"] == d:
-            if t >= FORCE_SELL:
-                qty, why = left, "last cum day"
-            elif t >= SELL_SLOTS[1] and ex["orders"] < 2:
-                qty, why = left, "last cum day"
-            elif t >= SELL_SLOTS[0] and ex["orders"] < 1:
-                qty, why = left / 2, "last cum day"
-        if qty <= 0 or not s.get("bids"):
+        elif p["sell_date"] == d:                          # half sold from 3:05 pm, all of it from 3:20 pm
+            target = p["qty"] if t >= SELL_SLOTS[1] else p["qty"] / 2 if t >= SELL_SLOTS[0] else 0
+            qty, why = target - ex["sold_qty"], "last cum day"
+        if qty <= 1e-6 or not s.get("bids") or now - ex["last_ts"] < gap:
             return
-        px = walk(s["bids"], qty, "sell")
+        best = s["bids"][0][0]
+        band = 0.02 if why == "10% stop" else DEPTH_BAND
+        depth = sum(q for px_, q in s["bids"] if px_ >= best * (1 - band))           # shares really bid for right now, near the best bid
+        last_chance = why == "last cum day" and t >= LAST_CHANCE
+        if qty > depth and not last_chance:
+            qty = depth                                    # sell what the bids can take now; the rest in the next orders
+        if qty <= 1e-6:
+            return
+        if qty > depth:                                    # 3:29 pm and the bids still cannot take it all: sell the rest 1% under the lowest bid shown
+            px = (walk(s["bids"], depth, "sell") * depth + (qty - depth) * s["bids"][-1][0] * 0.99) / qty if depth > 0 else s["bids"][-1][0] * 0.99
+            E.alert(self.sd, f"{p['symbol']}: at 3:29 pm the bids could not take the whole sale; {qty - depth:.0f} shares counted 1% under the lowest bid shown.")
+        else:
+            px = walk(s["bids"], qty, "sell")
         self.fill(p["symbol"], "SELL", qty, px, s, why)
-        ex["sold_qty"] += qty; ex["sold_value"] += qty * px; ex["orders"] += 1; ex["reason"] = ex["reason"] or why
+        ex["sold_qty"] += qty; ex["sold_value"] += qty * px; ex["orders"] += 1; ex["reason"] = ex["reason"] or why; ex["last_ts"] = now
         if p["qty"] - ex["sold_qty"] < 1e-6:
             self.trades = E.close_position(p, ex["sold_value"] / p["qty"], ex["reason"], self.today, self.meta, self.trades,
                                            n_sell_orders=ex["orders"], day_value=None, mode=MODE)
@@ -304,7 +328,7 @@ def connect(keys, feed):
     import upstox_client
     cfg = upstox_client.Configuration()
     cfg.access_token = token()
-    st = upstox_client.MarketDataStreamerV3(upstox_client.ApiClient(cfg), keys, "full")
+    st = upstox_client.MarketDataStreamerV3(upstox_client.ApiClient(cfg), keys, FEED_MODE)
     st.on("message", feed.on_message)
     st.on("open", lambda: E.log(f"{hhmm()} connected to the Upstox live feed ({len(keys)} shares)"))
     st.on("error", lambda e: E.log(f"{hhmm()} feed error: {str(e)[:200]}"))
