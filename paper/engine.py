@@ -571,6 +571,11 @@ if __name__ == "__main__":
     ap.add_argument("--date"); ap.add_argument("--state", default=str(ROOT / "state")); ap.add_argument("--start"); ap.add_argument("--out", default=str(ROOT)); ap.add_argument("--no-report", action="store_true")
     a = ap.parse_args()
     TEST_RUN = bool(a.start)
+    _n = datetime.now(IST)
+    if not a.date and os.environ.get("GITHUB_EVENT_NAME") == "schedule" and _n.weekday() < 5 and "08:15" <= _n.strftime("%H:%M") < "15:45":
+        print(f"{_n:%H:%M}: GitHub started this evening run late, in market hours; skipped so it does not clash with the live trader. "
+              "The next run catches the day up.")
+        sys.exit(0)
     today = date.fromisoformat(a.date) if a.date else datetime.now(IST).date()
     sd = Path(a.state)
     HOL = holidays()

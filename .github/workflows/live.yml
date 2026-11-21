@@ -1,4 +1,5 @@
 name: live-paper-trading
+run-name: ${{ github.event.schedule == '10 6 * * 1-5' && 'live afternoon (timer)' || github.event.schedule == '45 8 * * 1-5' && 'live sells (timer)' || github.event_name == 'schedule' && 'live morning (timer)' || format('live {0}', inputs.job) }}
 # Real-time paper trading on the Upstox live feed (no real orders). Parts of the day, India time:
 #   8:27 am  morning: plan the day (new dividends + all rules), look at the news again at 9:05, then live trading until 12:20
 #   8:52 am  morning again: spare start in case GitHub delays or skips the first (does nothing if the first is running)
@@ -6,6 +7,8 @@ name: live-paper-trading
 #   2:15 pm  sells: spare for last-cum-day sales at 3:05 / 3:20 pm (does nothing if the afternoon job already handles them)
 # Each job starts 20-45 minutes early so GitHub's usual start delays do not make it late. On a day with nothing to buy, sell
 # or hold, each part takes about a minute. The 9 pm workflow (daily.yml) finishes the day and backs up anything missed.
+# GitHub's timers can run hours late, so wake.yml starts the morning job at 8:25 am itself and the morning job starts the
+# afternoon job the moment it ends; the timers below stay as a backup.
 # Any problem opens a GitHub issue that mentions the owner (= an email).
 on:
   schedule:
@@ -21,6 +24,7 @@ on:
         options: [test, morning, afternoon, sells]
         default: test
 permissions:
+  actions: write
   contents: write
   issues: write
 concurrency:
@@ -86,11 +90,27 @@ jobs:
           gh issue create --title "Paper bot alert: $(TZ=Asia/Kolkata date +'%d %b %H:%M')" --body-file "$RUNNER_TEMP/alert.md"
           rm -f state/alerts_pending.md
       - name: Save to the repo and refresh the dashboard
+        id: save
         if: always() && steps.which.outputs.need == 'true' && steps.which.outputs.job != 'test'
         run: |
           python paper/report.py --state state --out docs/data/dashboard.json || true
           git config user.name "paper-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A state docs/data
-          git commit -q -m "Live paper trading $(TZ=Asia/Kolkata date '+%F %H:%M') (${{ steps.which.outputs.job }})" || { echo "Nothing new to save"; exit 0; }
-          for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done
+          if git diff --cached --quiet -- state; then echo "No trading changes to save"; exit 0; fi
+          git commit -q -m "Live paper trading $(TZ=Asia/Kolkata date '+%F %H:%M') (${{ steps.which.outputs.job }})"
+          ok=0; for i in 1 2 3 4; do git pull -q --rebase && git push -q && { ok=1; break; }; git rebase --abort 2>/dev/null; sleep 10; done
+          [ "$ok" = 1 ] || { echo "::error::could not save the results to the repo (another job changed the same files)"; exit 1; }
+      - name: Save failed email (GitHub issue)
+        if: always() && steps.save.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Paper bot: live results not saved ($(TZ=Asia/Kolkata date +'%d %b %H:%M'))" \
+            --body "@AjBhutada the ${{ steps.which.outputs.job }} job could not save its results to the repo (another job changed the same files at the same time). Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Start the afternoon part at once (GitHub's timer can run hours late)
+        if: always() && steps.which.outputs.job == 'morning'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if (( 10#$(TZ=Asia/Kolkata date +%H%M) < 1500 )); then gh workflow run live.yml -f job=afternoon && echo "afternoon job started"; else echo "after 3 pm: no afternoon job"; fi

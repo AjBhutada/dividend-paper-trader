@@ -1,0 +1,43 @@
+name: wake-up
+# Starts the morning live job at 8:25 am India time without relying on GitHub's own timer, which started this repo's
+# scheduled runs 4-7 hours late on 20 Nov 2026. Spare starts from 2:57 am: the first one that runs sleeps until 8:25 and
+# starts live.yml (job=morning) through workflow_dispatch, which GitHub starts within seconds; the others then find the
+# morning job already started and stop. If the last end-of-day run was missed, it also starts that run (catch-up only).
+# live.yml keeps its own 8:27 / 8:52 am timers as a backup.
+on:
+  schedule:
+    - cron: "27 21 * * 0-4"     # 2:57 am India, Mon-Fri
+    - cron: "47 22 * * 0-4"     # 4:17 am
+    - cron: "7 0 * * 1-5"       # 5:37 am
+    - cron: "27 1 * * 1-5"      # 6:57 am
+    - cron: "37 2 * * 1-5"      # 8:07 am
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "true = only start live.yml's connection test now (checks that this job may start workflows)"
+        type: boolean
+        default: false
+permissions:
+  actions: write
+  contents: read
+  issues: write
+concurrency:
+  group: wake-up
+  cancel-in-progress: false
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for 8:25 am India time, then start the morning live job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 paper/wake.py ${{ inputs.test && '--test' || '' }}
+      - name: Problem email (GitHub issue)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Paper bot: the wake-up job failed ($(TZ=Asia/Kolkata date +'%d %b %H:%M'))" \
+            --body "@AjBhutada the job that starts the morning live trader stopped with an error. GitHub's own 8:27 / 8:52 am timers are still there as a backup. Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -416,6 +416,8 @@ def main():
     if a.test_feed:
         return test_feed(a.test_feed)
     today = datetime.now(E.IST).date()
+    if hhmm() >= "15:45":
+        print(f"{hhmm()}: started after the close (GitHub's timer ran late); the 9 pm run handles the day."); return 0
     sd = Path(a.state); (sd / "live").mkdir(parents=True, exist_ok=True)
     E.HOL = E.holidays()
     if not E.is_trading(today):
