@@ -527,6 +527,8 @@ if __name__ == "__main__":
             try:
                 out = run(d, sd, a.start); break
             except RuntimeError as ex:
+                if "not published" in str(ex) and d == today and not a.date and datetime.now(IST).hour < 17:
+                    log(f"{d}: the day's NSE prices are not out yet (morning start); the evening run will do {d}."); break
                 if "not published" in str(ex) and k < 3 and d == today:
                     log(str(ex) + "; waiting 15 minutes"); time.sleep(900)
                 else:
