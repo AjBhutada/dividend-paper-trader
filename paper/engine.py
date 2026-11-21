@@ -281,6 +281,18 @@ def save_state(sd, meta, pos, trades, eq, signals):
 
 
 # ---------------------------------------------------------------- shared steps (used by the end-of-day run and the live trader)
+_SET = None
+
+
+def SET():
+    """paper/settings.json (read once)."""
+    global _SET
+    if _SET is None:
+        f = ROOT / "paper/settings.json"
+        _SET = json.loads(f.read_text()) if f.exists() else {}
+    return _SET
+
+
 def update_quarter(today, meta, pos):
     """Per-share limit = 10% of capital at the start of each quarter (Jan/Apr/Jul/Oct), unless paper/settings.json sets
     "fixed_limit" (the live paper test keeps Rs 50,000 throughout). Tests of past data pass --start and ignore the fixed limit."""
@@ -334,8 +346,9 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
         if not len(h) or s not in T.index:
             reasons.append("no recent price")
         else:
-            if not (RULES["MIN_MCAP"] <= mc <= RULES["MAX_MCAP"]):
-                reasons.append("market cap outside 500-2,500 cr")
+            top = SET().get("tier2_max_mcap") or RULES["MAX_MCAP"]
+            if not (RULES["MIN_MCAP"] <= mc <= top):
+                reasons.append(f"market cap outside 500-{top:,.0f} cr")
             if not (np.isfinite(y) and y >= RULES["MIN_YIELD"]):
                 reasons.append("dividend < 0.5%")
             if (h.series != "EQ").any():
@@ -366,11 +379,15 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             st["status"] = "buy today"
             sig = float(np.nanstd((win.close / win.prev_close - 1).tail(20))) or 0.03
             due.append(dict(symbol=s, isin=ISIN.get(s), y=y, med_value=float(win.value_cr.median()) * 1e7, sigma=sig, ex=X.isoformat(), cum=C.isoformat(),
-                            dividend_pct=st["dividend_pct"], mcap_cr=st["mcap_cr"], signal=st))
+                            dividend_pct=st["dividend_pct"], mcap_cr=st["mcap_cr"], signal=st, tier=1 if mc <= RULES["MAX_MCAP"] else 2))
+        if np.isfinite(mc):
+            st["range"] = "500-2,500 cr (priority)" if mc <= RULES["MAX_MCAP"] else "2,500-8,000 cr (idle money)"
         rows.append(st)
-    # same-day signals: bigger dividend first; size each one and check the free capital
+    # same-day signals: Rs 500-2,500 cr first, then bigger dividend first. A Rs 2,500-8,000 cr stock is bought only with idle
+    # money: after paying for it, at least tier2_reserve_frac (20%) of the account must stay free for Rs 500-2,500 cr dividends.
     buys, cash_left = [], meta["cash"]
-    for b in sorted(due, key=lambda b: -b["y"]):
+    reserve = (SET().get("tier2_reserve_frac") or 0.0) * (meta["cash"] + sum(p["margin"] for p in pos))
+    for b in sorted(due, key=lambda b: (b["tier"], -b["y"])):
         broker, mfrac = broker_for(b["symbol"], kite, ups, groww)
         limit = meta["limit"] * (2 if (broker == "Cash" and b["y"] >= RULES["BIG_YIELD"]) else 1)
         V = min(limit / mfrac, RULES["PARTICIPATION"] * b["med_value"])
@@ -378,6 +395,8 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             b["signal"].update(status="skip", reason="too small"); continue
         if V * mfrac > cash_left:
             b["signal"].update(status="skip", reason="capital busy"); continue
+        if b["tier"] == 2 and V * mfrac + reserve > cash_left:
+            b["signal"].update(status="skip", reason=f"keeping 20% of the account (Rs {reserve:,.0f}) free for Rs 500-2,500 cr dividends"); continue
         cash_left -= V * mfrac
         b.update(broker=broker, mfrac=mfrac, target=V)
         buys.append(b)
@@ -390,7 +409,7 @@ def open_position(b, avg_px, qty, today, meta, buy_impact=0.0, mode="1-minute ca
     meta["cash"] -= margin
     p = dict(symbol=b["symbol"], isin=b.get("isin"), broker=b["broker"], margin_frac=b["mfrac"], buy_date=today.isoformat(), sell_date=b["cum"], ex_date=b["ex"],
              avg_cost=round(avg_px, 2), qty=qty, position=V, margin=margin, sigma=b["sigma"], buy_impact=buy_impact, dividend_pct=b["dividend_pct"],
-             mcap_cr=b["mcap_cr"], stop=round(avg_px * (1 - RULES["STOP"]), 2), buy_mode=mode, buy_orders=RULES["ORDERS"])
+             mcap_cr=b["mcap_cr"], stop=round(avg_px * (1 - RULES["STOP"]), 2), buy_mode=mode, buy_orders=RULES["ORDERS"], tier=b.get("tier", 1))
     log(f"BUY {p['symbol']} ({p['broker']}) at {avg_px:.2f}, position Rs {V:,.0f}, margin Rs {margin:,.0f}, sell on {p['sell_date']}, stop {p['stop']} [{mode}]")
     return p
 
@@ -416,7 +435,7 @@ def close_position(p, exit_px, how, today, meta, trades, n_sell_orders=2, day_va
                avg_cost=p["avg_cost"], sell_date=today.isoformat(), exit_price=round(exit_px, 2), exit_reason=how, position=round(p["position"]),
                margin=round(p["margin"]), charges=round(ch + intr), impact=round((p.get("buy_impact", 0.0) + imp) * p["position"]), pnl=round(pnl),
                pnl_pct_position=round(100 * pnl / p["position"], 2), pnl_pct_margin=round(100 * pnl / p["margin"], 2), days=days, ex_date=p["ex_date"],
-               buy_mode=p.get("buy_mode", "1-minute candles"), sell_mode=mode)
+               buy_mode=p.get("buy_mode", "1-minute candles"), sell_mode=mode, tier=p.get("tier", 1))
     log(f"SELL {p['symbol']} at {exit_px:.2f} ({how}): P&L Rs {pnl:,.0f} ({row['pnl_pct_margin']:+.1f}% on margin) [{mode}]")
     return pd.concat([trades, pd.DataFrame([row])], ignore_index=True)
 

@@ -145,7 +145,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
   <details id="rules">
     <summary>Rules the bot follows</summary>
     <ul style="margin-top:10px">
-      <li>NSE EQ shares with a market cap of ₹500–2,500 cr, a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, price at least ₹10, no circuit-locked days, no bonus, split or rights issue nearby.</li>
+      <li>NSE EQ shares with a market cap of ₹500–8,000 cr. Dividends of ₹500–2,500 cr come first; a ₹2,500–8,000 cr dividend is bought only with idle money, when at least 20% of the account stays free afterwards. A dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, price at least ₹10, no circuit-locked days, no bonus, split or rights issue nearby.</li>
       <li>Buy day: the later of 10 trading days before the ex-date and the first trading day after the record-date news (it must be at least 2 days before the ex-date). The plan is made at 8:27 am and checked again at 9:05 am with the newest announcements.</li>
       <li>Buying: 5 slices (9:30, 10:30, 11:30 am, 12:45 and 2:00 pm), each only in a calm minute (no volume spike). Each paper order takes only the shares really offered at that second within 1% of the best offer (up to 30 levels of the Upstox order book), at those offers' prices, and the total never exceeds 10% of the shares traded so far that day. What the book can't take is bought in later orders (at most 12 per stock); anything not bought by 3 pm is dropped.</li>
       <li>Selling: on the last cum day, half from 3:05 pm and the rest from 3:20 pm, every 30 seconds, each order taking only the shares really bid for within 1% of the best bid. Anything the bids still can't take at 3:29 pm is counted 1% under the lowest bid shown, and reported. A 10% stop-loss below the buy price is watched on every tick from the day after buying.</li>
@@ -343,7 +343,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     table($('signals'), watching, [
       ['Stock', 'symbol', null, { left: true }], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Buy day', 'buy_day', (v) => fmtDate(v)],
       ['Sell day', 'last_cum_day', (v) => fmtDate(v)], ['Dividend ₹', 'dividend', (v) => num(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
-      ['Mcap (₹ cr)', 'mcap_cr', (v) => (v ? Math.round(v).toLocaleString('en-IN') : '—')], ['Status', 'status', null, { left: true }],
+      ['Mcap (₹ cr)', 'mcap_cr', (v) => (v ? Math.round(v).toLocaleString('en-IN') : '—')], ['Range', 'range', null, { left: true }], ['Status', 'status', null, { left: true }],
     ], 'No dividend that passes the rules is coming up in the next 25 trading days. New ones are picked up every morning and evening.');
     table($('skipped'), skipped, [
       ['Stock', 'symbol', null, { left: true }], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
@@ -401,7 +401,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     const band = (x, edges, labs) => { for (let i = 0; i < labs.length; i++) if (x >= edges[i] && x < edges[i + 1]) return labs[i]; return labs[labs.length - 1]; };
     const defs = [
       ['Dividend size (% of price)', (t) => band(+t.dividend_pct, [0, 1, 1.5, 1e9], ['0.5-1%', '1-1.5%', '1.5% and more']), ['0.5-1%', '1-1.5%', '1.5% and more']],
-      ['Company size (market cap)', (t) => band(+t.mcap_cr, [0, 1000, 1500, 2000, 1e12], ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr']), ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr']],
+      ['Company size (market cap)', (t) => band(+t.mcap_cr, [0, 1000, 1500, 2000, 2500, 5000, 1e12], ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr', '2,500-5,000 cr', '5,000-8,000 cr']), ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr', '2,500-5,000 cr', '5,000-8,000 cr']],
       ['Broker', (t) => t.broker, ['Kite MTF', 'Upstox MTF', 'Groww MTF', 'Cash']],
       ['How the trade ended', (t) => (String(t.exit_reason).includes('stop') ? '10% stop-loss' : 'Sold on last cum day'), ['Sold on last cum day', '10% stop-loss']],
     ];

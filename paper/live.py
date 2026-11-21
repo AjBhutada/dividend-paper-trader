@@ -163,7 +163,7 @@ def build_plan(today, meta, pos):
         c = E.candles(b["isin"], prev, today)
         base = float(c.v[c.v > 0].median()) if len(c) and (c.v > 0).any() else None
         plan["buys"].append(dict(symbol=b["symbol"], isin=b["isin"], key=f"NSE_EQ|{b['isin']}", broker=b["broker"], mfrac=b["mfrac"], target=round(b["target"]),
-                                 sigma=b["sigma"], ex=b["ex"], cum=b["cum"], dividend_pct=b["dividend_pct"], mcap_cr=b["mcap_cr"], base_minute_vol=base,
+                                 sigma=b["sigma"], ex=b["ex"], cum=b["cum"], dividend_pct=b["dividend_pct"], mcap_cr=b["mcap_cr"], tier=b.get("tier", 1), base_minute_vol=base,
                                  slices=0, bought_qty=0, bought_value=0.0, status="open", note=""))
         E.log(f"PLAN buy {b['symbol']} ({b['broker']}): target position Rs {b['target']:,.0f}, dividend {b['dividend_pct']}%, "
               f"sell on {b['cum']}, previous day's median minute volume {base}")
