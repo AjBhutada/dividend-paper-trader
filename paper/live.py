@@ -44,7 +44,8 @@ FORCE_SELL = "15:27"
 LAST_CHANCE = "15:29"      # last cum day: whatever the bids could not take by now is sold 1% under the lowest bid shown (and reported)
 DEPTH_BAND = 0.01          # an order takes only the quantity offered (or bid) within 1% of the best price at that second
 MAX_BUY_ORDERS = 12        # at most 12 fills per stock; brokerage is charged per slice (one real limit order), not per fill
-FEED_MODE = "full_d30"     # Upstox Plus: up to 30 levels of bids and offersLATE_SELL = "09:20"
+FEED_MODE = "full_d30"     # Upstox Plus: up to 30 levels of bids and offers
+LATE_SELL = "09:20"        # the morning after the last cum day (missed sale, or held at the upper circuit)
 MODE = "live ticks"
 
 

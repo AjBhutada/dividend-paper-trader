@@ -494,13 +494,19 @@ def run(today, sd, start=None):
                 exit_px, how = r.open * 0.998, "10% stop (gap)"
             elif r.low <= stop:
                 exit_px, how = stop * 0.998, "10% stop"
-        at_upper = r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
-        upper = at_upper and (today.isoformat() == p["sell_date"] or (today.isoformat() > p["sell_date"] and bool(p.get("upper_hold"))))
+        day = today.isoformat()
+        if day == p["sell_date"]:                              # last cum day: closed at the upper circuit -> keep it
+            upper = r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
+        else:                                                  # later days: keep it only if locked up all day again
+            upper = day > p["sell_date"] and bool(p.get("upper_hold")) and r.high <= r.low * 1.001 and r.close > r.prev_close * 1.01
         if exit_px is None and upper:
-            p["upper_hold"] = today.isoformat()
-            log(f"{p['symbol']}: closed at the upper circuit on {'its last cum day' if today.isoformat() == p['sell_date'] else 'the day after'}; held one more day (dividend will be received)")
-        if exit_px is None and today.isoformat() >= p["sell_date"] and not upper:
-            exit_px, how = r.close * 0.9995, ("last cum day close" if today.isoformat() == p["sell_date"] else "day after an upper circuit (with dividend)")
+            p["upper_hold"] = day
+            log(f"{p['symbol']}: {'closed at the upper circuit on its last cum day' if day == p['sell_date'] else 'locked at the upper circuit again'}; held one more day (dividend will be received)")
+        if exit_px is None and day >= p["sell_date"] and not upper:
+            if day == p["sell_date"]:
+                exit_px, how = r.close * 0.9995, "last cum day close"
+            else:                                              # sold at the start of the morning, like the live bot (9:20 am)
+                exit_px, how = r.open * 0.998, ("morning after an upper circuit (with dividend)" if p.get("upper_hold") else "late sale (missed last cum day)")
         if exit_px is None:
             keep.append(p); continue
         sold = p.get("selling") or {}
