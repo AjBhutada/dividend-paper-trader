@@ -2,7 +2,7 @@
 
 **Dashboard: https://ajbhutada.github.io/dividend-paper-trader/**
 
-_Updated after the close on 20 Nov 2026. Paper money only: no real orders are placed._
+_Updated after the close on 21 Nov 2026. Paper money only: no real orders are placed._
 
 | | |
 |---|---|
@@ -37,9 +37,10 @@ _None yet._
 | VRAJ | 2026-11-25 | 0.5 | 398.0 | market cap outside 500-2,500 cr; dividend < 0.5%; too little trading |
 
 ## Rules in short
-- NSE EQ shares of ₹500–2,500 cr with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
+- NSE EQ shares of ₹500–8,000 cr (₹500–2,500 cr first; ₹2,500–8,000 cr only when 20% of the account stays free afterwards) with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
 - Buy on the later of 10 trading days before the ex-date and the first trading day after the record-date news, at the average of calm 1-minute candles (no volume spikes), in 5 orders.
 - Sell at the close of the last cum day; 10% stop-loss below the buy price.
+- All open positions together never more than 2x the account (MTF exposure cap).
 - Size: Rs 50,000 margin per share for the paper test (fixed; the past-data tests used 10% of capital at each quarter's start) (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
