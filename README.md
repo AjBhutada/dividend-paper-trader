@@ -41,6 +41,7 @@ _None yet._
 - Buy on the later of 10 trading days before the ex-date and the first trading day after the record-date news, at the average of calm 1-minute candles (no volume spikes), in 5 orders.
 - Sell at the close of the last cum day; 10% stop-loss below the buy price.
 - All open positions together never more than 2x the account (MTF exposure cap).
+- A stock that lost money in every year it was traded (3+ years) is not bought; its dividends are followed on paper and one profitable year lifts the block.
 - Size: Rs 50,000 margin per share for the paper test (fixed; the past-data tests used 10% of capital at each quarter's start) (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
