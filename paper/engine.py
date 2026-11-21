@@ -405,8 +405,10 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             reasons.append("no recent price")
         else:
             top = SET().get("tier2_max_mcap") or RULES["MAX_MCAP"]
-            if not (RULES["MIN_MCAP"] <= mc <= top):
-                reasons.append(f"market cap outside 500-{top:,.0f} cr")
+            if not np.isfinite(mc):
+                reasons.append("market cap unknown (not in the NSE/AMFI share list)")
+            elif not (RULES["MIN_MCAP"] <= mc <= top):
+                reasons.append(f"market cap Rs {mc:,.0f} cr, outside 500-{top:,.0f} cr")
             if not (np.isfinite(y) and y >= RULES["MIN_YIELD"]):
                 reasons.append(f"dividend {100 * y:.3f}% is below 0.5%" if np.isfinite(y) else "dividend % unknown (no price 21 days before)")
             if (h.series != "EQ").any():
