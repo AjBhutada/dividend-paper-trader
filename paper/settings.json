@@ -8,5 +8,7 @@
  "_note_fixed_limit": "Margin per share for the live paper test, fixed at Rs 50,000 (cash trades with a dividend of 1.5% or more get twice this). Remove it (or set null) to use 10% of capital at each quarter's start.",
  "tier2_max_mcap": 8000,
  "tier2_reserve_frac": 0.2,
- "_note_tier2": "Dividends of Rs 500-2,500 cr have priority. Rs 2,500-8,000 cr dividends are bought only with idle money: after paying the margin, at least 20% of the account must stay free for Rs 500-2,500 cr dividends. Set tier2_max_mcap to 2500 to switch the extra range off."
+ "_note_tier2": "Dividends of Rs 500-2,500 cr have priority. Rs 2,500-8,000 cr dividends are bought only with idle money: after paying the margin, at least 20% of the account must stay free for Rs 500-2,500 cr dividends. Set tier2_max_mcap to 2500 to switch the extra range off.",
+ "max_exposure_x": 2.0,
+ "_note_exposure": "All open positions together may not exceed this multiple of the account (cash + margin in use). Tested 2015-2026: 2x kept the long-run profit and cut the worst fall from -78% to -66%. Remove it (or null) for no cap."
 }

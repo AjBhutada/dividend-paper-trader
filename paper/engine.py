@@ -386,7 +386,10 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
     # same-day signals: Rs 500-2,500 cr first, then bigger dividend first. A Rs 2,500-8,000 cr stock is bought only with idle
     # money: after paying for it, at least tier2_reserve_frac (20%) of the account must stay free for Rs 500-2,500 cr dividends.
     buys, cash_left = [], meta["cash"]
-    reserve = (SET().get("tier2_reserve_frac") or 0.0) * (meta["cash"] + sum(p["margin"] for p in pos))
+    account = meta["cash"] + sum(p["margin"] for p in pos)
+    reserve = (SET().get("tier2_reserve_frac") or 0.0) * account
+    cap_x = SET().get("max_exposure_x")                       # all open positions together <= cap_x x the account
+    exposure = sum(p["position"] for p in pos)
     for b in sorted(due, key=lambda b: (b["tier"], -b["y"])):
         broker, mfrac = broker_for(b["symbol"], kite, ups, groww)
         limit = meta["limit"] * (2 if (broker == "Cash" and b["y"] >= RULES["BIG_YIELD"]) else 1)
@@ -397,7 +400,10 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
             b["signal"].update(status="skip", reason="capital busy"); continue
         if b["tier"] == 2 and V * mfrac + reserve > cash_left:
             b["signal"].update(status="skip", reason=f"keeping 20% of the account (Rs {reserve:,.0f}) free for Rs 500-2,500 cr dividends"); continue
+        if cap_x and exposure + V > cap_x * account:
+            b["signal"].update(status="skip", reason=f"all positions would exceed {cap_x:g}x the account (Rs {cap_x * account:,.0f})"); continue
         cash_left -= V * mfrac
+        exposure += V
         b.update(broker=broker, mfrac=mfrac, target=V)
         buys.append(b)
     return rows, buys
