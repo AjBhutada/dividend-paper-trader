@@ -286,8 +286,13 @@ class Trader:
         qty, why, gap, leg = 0.0, None, 30, None
         if p["buy_date"] < d and s.get("ltp") and (ex["reason"] == "10% stop" or (ex["orders"] == 0 and s["ltp"] <= p["stop"])):
             qty, why, gap, leg = left, "10% stop", 10, "stop"
-        elif p["sell_date"] < d and t >= LATE_SELL:
-            qty, why, leg = left, "late sell (missed last cum day)", "late"
+        elif p["sell_date"] < d and p.get("upper_hold") and t >= LATE_SELL and not s.get("asks") and s.get("ltp") and s.get("cp") and s["ltp"] >= s["cp"] * 1.049:
+            if p["upper_hold"] != d:                       # locked at the upper circuit again: keep it one more day
+                p["upper_hold"] = d
+                E.log(f"{t} {p['symbol']}: still locked at the upper circuit; holding one more day")
+            return
+        elif p["sell_date"] < d and t >= LATE_SELL:        # morning after: sell at the start of the day
+            qty, why, leg = left, ("sold the morning after an upper circuit (with dividend)" if p.get("upper_hold") else "late sell (missed last cum day)"), "late"
         elif p["sell_date"] == d and t >= SELL_SLOTS[0] and not s.get("asks") and s.get("ltp") and s.get("cp") and s["ltp"] >= s["cp"] * 1.049:
             if p.get("upper_hold") != d:                   # locked at the upper circuit (nobody selling): keep it, sell tomorrow at 9:20 am
                 p["upper_hold"] = d

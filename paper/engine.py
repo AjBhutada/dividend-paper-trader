@@ -494,9 +494,11 @@ def run(today, sd, start=None):
                 exit_px, how = r.open * 0.998, "10% stop (gap)"
             elif r.low <= stop:
                 exit_px, how = stop * 0.998, "10% stop"
-        upper = today.isoformat() == p["sell_date"] and r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
+        at_upper = r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
+        upper = at_upper and (today.isoformat() == p["sell_date"] or (today.isoformat() > p["sell_date"] and bool(p.get("upper_hold"))))
         if exit_px is None and upper:
-            log(f"{p['symbol']}: closed at the upper circuit on its last cum day; held one more day (dividend will be received)")
+            p["upper_hold"] = today.isoformat()
+            log(f"{p['symbol']}: closed at the upper circuit on {'its last cum day' if today.isoformat() == p['sell_date'] else 'the day after'}; held one more day (dividend will be received)")
         if exit_px is None and today.isoformat() >= p["sell_date"] and not upper:
             exit_px, how = r.close * 0.9995, ("last cum day close" if today.isoformat() == p["sell_date"] else "day after an upper circuit (with dividend)")
         if exit_px is None:
