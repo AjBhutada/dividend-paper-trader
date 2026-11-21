@@ -43,7 +43,7 @@ SELL_SLOTS = ["15:05", "15:20"]
 FORCE_SELL = "15:27"
 LAST_CHANCE = "15:29"      # last cum day: whatever the bids could not take by now is sold 1% under the lowest bid shown (and reported)
 DEPTH_BAND = 0.01          # an order takes only the quantity offered (or bid) within 1% of the best price at that second
-MAX_BUY_ORDERS = 12        # at most 12 buy orders per stock (brokerage is charged per order)
+MAX_BUY_ORDERS = 12        # at most 12 fills per stock; brokerage is charged per slice (one real limit order), not per fill
 FEED_MODE = "full_d30"     # Upstox Plus: up to 30 levels of bids and offersLATE_SELL = "09:20"
 MODE = "live ticks"
 
@@ -256,7 +256,8 @@ class Trader:
             return
         px = walk(s["asks"], qty, "buy")
         cut = qty < want                                   # the book or the volume could not take the whole slice: the rest stays due
-        b["orders"] = b.get("orders", 0) + 1
+        b["orders"] = b.get("orders", 0) + 1           # pieces filled (a cap on how long a slice keeps trying)
+        b["slice_ids"] = sorted(set(b.get("slice_ids", [])) | {b["slices"]})   # each slice = one real limit order for brokerage
         self.fill(b["symbol"], "BUY", qty, px, s, f"slice {b['slices'] + 1} of {R['ORDERS']}" + (" (part: limited by offers/volume)" if cut else ""))
         p = next((p for p in self.pos if p["symbol"] == b["symbol"]), None)
         if p is None:
@@ -267,9 +268,9 @@ class Trader:
         if not cut:
             b["slices"] += 1
         b["bought_qty"] += qty; b["bought_value"] += qty * px; b["last_order_ts"] = now
-        p["buy_orders"] = b["orders"]
+        p["buy_orders"] = len(b["slice_ids"])
         if b["slices"] >= R["ORDERS"] or b["bought_value"] >= b["target"] * 0.98 or b["orders"] >= MAX_BUY_ORDERS:
-            b["status"] = "done"; b["note"] = f"{b['orders']} orders, average {p['avg_cost']}"
+            b["status"] = "done"; b["note"] = f"{len(b['slice_ids'])} orders ({b['orders']} fills), average {p['avg_cost']}"
 
     def try_exit(self, p, t):
         s = self.feed.snap.get(f"NSE_EQ|{p.get('isin')}")
@@ -279,14 +280,14 @@ class Trader:
         ex.setdefault("last_ts", 0)
         left = p["qty"] - ex["sold_qty"]
         d, now = self.today.isoformat(), CLOCK.now().timestamp()
-        qty, why, gap = 0.0, None, 30
+        qty, why, gap, leg = 0.0, None, 30, None
         if p["buy_date"] < d and s.get("ltp") and (ex["reason"] == "10% stop" or (ex["orders"] == 0 and s["ltp"] <= p["stop"])):
-            qty, why, gap = left, "10% stop", 10
+            qty, why, gap, leg = left, "10% stop", 10, "stop"
         elif p["sell_date"] < d and t >= LATE_SELL:
-            qty, why = left, "late sell (missed last cum day)"
+            qty, why, leg = left, "late sell (missed last cum day)", "late"
         elif p["sell_date"] == d:                          # half sold from 3:05 pm, all of it from 3:20 pm
             target = p["qty"] if t >= SELL_SLOTS[1] else p["qty"] / 2 if t >= SELL_SLOTS[0] else 0
-            qty, why = target - ex["sold_qty"], "last cum day"
+            qty, why, leg = target - ex["sold_qty"], "last cum day", ("second half" if t >= SELL_SLOTS[1] else "first half")
         if qty <= 1e-6 or not s.get("bids") or now - ex["last_ts"] < gap:
             return
         best = s["bids"][0][0]
@@ -304,9 +305,10 @@ class Trader:
             px = walk(s["bids"], qty, "sell")
         self.fill(p["symbol"], "SELL", qty, px, s, why)
         ex["sold_qty"] += qty; ex["sold_value"] += qty * px; ex["orders"] += 1; ex["reason"] = ex["reason"] or why; ex["last_ts"] = now
+        ex["legs"] = sorted(set(ex.get("legs", [])) | {leg})      # each leg = one real limit order for brokerage, however many pieces
         if p["qty"] - ex["sold_qty"] < 1e-6:
             self.trades = E.close_position(p, ex["sold_value"] / p["qty"], ex["reason"], self.today, self.meta, self.trades,
-                                           n_sell_orders=ex["orders"], day_value=None, mode=MODE)
+                                           n_sell_orders=len(ex["legs"]), day_value=None, mode=MODE)
             self.pos.remove(p)
 
     def save(self):
