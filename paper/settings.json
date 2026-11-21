@@ -1,7 +1,7 @@
 {
  "buy_hours": "whole_day",
- "watch_holding_days": false,
- "monthly_minute_budget": 1650,
- "_note": "Private repo (2,000 free GitHub minutes a month): the live feed is used only on buy days and sell days, and not at all for the rest of a month once the live jobs have used 1,650 minutes. If the repo becomes public (unlimited minutes): set watch_holding_days to true and monthly_minute_budget to null.",
+ "watch_holding_days": true,
+ "monthly_minute_budget": null,
+ "_note": "Public repository: GitHub minutes are unlimited, so held shares are watched live all day for the stop and there is no minutes limit. For a private repository (2,000 free minutes a month) set watch_holding_days to false and monthly_minute_budget to 1650.",
  "_note_buy_hours": "whole_day = 5 slices 9:30 am - 2:00 pm (as tested for 5 years); morning = 5 slices 9:30 - 11:30 am, about half the GitHub minutes per buy day."
 }

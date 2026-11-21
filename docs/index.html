@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dividend Paper Trader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; status band, headline tiles, then the day's activity, the account chart and the record. */
+:root {
+  --bg: #f5f6f3; --panel: #ffffff; --fg: #1b211e; --muted: #5d6861; --line: #dde2dc; --accent: #1d6b57; --accent-soft: #d8ebe4;
+  --good: #1f7a4a; --bad: #b3392f; --warn: #a86b10; --index: #8f9a93; --invest: #c9d6cf;
+  --display: "IBM Plex Serif", Georgia, serif; --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --mono: "IBM Plex Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111513; --panel: #181e1b; --fg: #e4e9e5; --muted: #98a39c; --line: #2a322e; --accent: #5cc3a3; --accent-soft: #1d3a31;
+  --good: #5bc48a; --bad: #ef7a6f; --warn: #e2a64a; --index: #77827b; --invest: #2c3b34; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #111513; --panel: #181e1b; --fg: #e4e9e5; --muted: #98a39c; --line: #2a322e; --accent: #5cc3a3; --accent-soft: #1d3a31;
+  --good: #5bc48a; --bad: #ef7a6f; --warn: #e2a64a; --index: #77827b; --invest: #2c3b34; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+        display: flex; flex-direction: column; gap: 34px; }
+h1 { font: 500 clamp(26px, 4vw, 36px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 18px/1.3 var(--body); margin: 0; text-wrap: balance; }
+h3 { font: 600 14px/1.3 var(--body); margin: 0; color: var(--muted); letter-spacing: .02em; }
+p { margin: 0; max-width: 70ch; }
+.muted { color: var(--muted); font-size: 13px; }
+.num, td, .big { font-variant-numeric: tabular-nums; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.head { display: flex; flex-direction: column; gap: 10px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 12.5px; color: var(--fg); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--muted); }
+.pill.ok i { background: var(--good); } .pill.warn i { background: var(--warn); } .pill.bad i { background: var(--bad); }
+.lede { font-size: 17px; }
+.note { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; font-size: 14px; max-width: none; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tile .lab { font-size: 12.5px; color: var(--muted); }
+.tile .big { font: 500 26px/1.15 var(--display); }
+.tile .sub { font-size: 12.5px; color: var(--muted); }
+.good { color: var(--good); } .bad { color: var(--bad); } .warnc { color: var(--warn); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.grid2 > * { min-width: 0; }
+.chart { position: relative; width: 100%; min-height: 240px; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--muted); font: 11.5px var(--body); }
+.chart .grid line { stroke: var(--line); } .chart .domain { stroke: var(--line); } .chart .tick line { stroke: var(--line); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,.12); border-radius: 8px;
+       padding: 8px 10px; font-size: 12.5px; line-height: 1.5; white-space: nowrap; z-index: 3; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child, .l { text-align: left; }
+tbody tr:last-child td { border-bottom: 0; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; background: var(--panel); position: sticky; top: 0; cursor: pointer; user-select: none; }
+th[data-sort="asc"]::after { content: " ▲"; } th[data-sort="desc"]::after { content: " ▼"; }
+.empty { padding: 14px; color: var(--muted); font-size: 13.5px; }
+.bar { position: relative; height: 10px; min-width: 80px; }
+.bar span { position: absolute; top: 0; height: 10px; border-radius: 2px; }
+.bar b { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--line); }
+.prog { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 70px; }
+.prog span { display: block; height: 100%; background: var(--accent); }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+summary:focus-visible, th:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+pre.log { font: 12px/1.5 var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; margin: 10px 0 0; max-height: 360px; }
+ul { margin: 0; padding-left: 1.2em; max-width: 72ch; }
+.tag { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.tag.live { color: var(--accent); border-color: var(--accent); }
+footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <h1 id="title">Dividend run-up paper trading</h1>
+    <div class="status" id="status"><span class="pill"><i></i>Loading…</span></div>
+    <p class="lede" id="lede"></p>
+    <p class="note" id="note" hidden></p>
+  </header>
+
+  <section id="kpis" class="tiles"></section>
+
+  <section id="today">
+    <h2 id="today-h">Today</h2>
+    <div class="grid2">
+      <div class="card"><h3>Buying today</h3><div id="plan-buys"></div></div>
+      <div class="card"><h3>Selling and stop-loss watch</h3><div id="plan-watch"></div></div>
+    </div>
+    <div class="card"><h3>Paper orders filled (latest days, live ticks)</h3><div id="fills"></div></div>
+  </section>
+
+  <section id="account">
+    <h2>The account against the small-cap index</h2>
+    <div class="legend"><span><i style="background:var(--accent)"></i>Paper account</span><span><i style="background:var(--index)"></i>Same money in the Nifty Smallcap 250</span><span><i style="background:var(--invest);height:8px"></i>Money in open trades</span></div>
+    <div class="chart" id="eq-chart"></div>
+  </section>
+
+  <section id="open">
+    <h2>Open positions</h2>
+    <div id="positions"></div>
+  </section>
+
+  <section id="watch">
+    <h2>Dividends being watched</h2>
+    <p class="muted">Every dividend with an ex-date in the next 25 trading days, checked against all the rules each morning and evening.</p>
+    <div id="signals"></div>
+    <details><summary>Skipped dividends and why</summary><div id="skipped" style="margin-top:10px"></div></details>
+  </section>
+
+  <section id="months">
+    <h2>Month by month</h2>
+    <div class="chart" id="m-chart" style="min-height:200px"></div>
+    <div id="m-table"></div>
+  </section>
+
+  <section id="why">
+    <h2>Where the profit comes from</h2>
+    <div class="grid2" id="groups"></div>
+  </section>
+
+  <section id="closed">
+    <h2>Closed trades</h2>
+    <p class="muted">Click a column to sort. "Traded on" says whether the buy and sell used live ticks or the 9 pm backup on 1-minute candles.</p>
+    <div id="trades"></div>
+  </section>
+
+  <section id="bot">
+    <h2>How the bot is running</h2>
+    <div class="grid2">
+      <div class="card"><h3>Settings</h3><div id="settings"></div></div>
+      <div class="card"><h3>Last end-of-day run</h3><pre class="log" id="eodlog" style="margin:0"></pre></div>
+    </div>
+    <details><summary id="livelog-s">Live trader log</summary><pre class="log" id="livelog"></pre></details>
+  </section>
+
+  <details id="rules">
+    <summary>Rules the bot follows</summary>
+    <ul style="margin-top:10px">
+      <li>NSE EQ shares with a market cap of ₹500–2,500 cr, a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, price at least ₹10, no circuit-locked days, no bonus, split or rights issue nearby.</li>
+      <li>Buy day: the later of 10 trading days before the ex-date and the first trading day after the record-date news (it must be at least 2 days before the ex-date). The plan is made at 8:27 am and checked again at 9:05 am with the newest announcements.</li>
+      <li>Buying: 5 slices (9:30, 10:30, 11:30 am, 12:45 and 2:00 pm), each only in a calm minute (no volume spike), filled against the live offers on the Upstox feed, never more than 10% of the volume traded so far.</li>
+      <li>Selling: half at 3:05 pm and the rest at 3:20 pm on the last cum day, against the live bids. A 10% stop-loss below the buy price is watched on every tick from the day after buying.</li>
+      <li>Size: 10% of the account per share as margin, reset at the start of each quarter (₹50,000 now); twice that for cash trades with a dividend of 1.5% or more. MTF only on stocks in Kite's, Upstox's or Groww's real lists (in that order), otherwise cash.</li>
+      <li>Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP and pledge charges, and MTF interest. Backup trades on 1-minute candles also carry a price-impact estimate.</li>
+      <li>The 9 pm run marks positions at NSE's official close, and trades anything the live trader missed on 1-minute candles. Any problem opens a GitHub issue, which emails the owner.</li>
+    </ul>
+  </details>
+
+  <footer id="foot">Paper trading with paper money: no real orders are placed. Research only, not investment advice.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function () {
+  const START_DEFAULT = 500000;
+  const $ = (id) => document.getElementById(id);
+  const inr = (v) => (v === null || v === undefined || !isFinite(v) ? '—' : (v < 0 ? '−₹' : '₹') + Math.abs(Math.round(v)).toLocaleString('en-IN'));
+  const num = (v, d = 2) => (v === null || v === undefined || !isFinite(v) ? '—' : (+v).toFixed(d));
+  const pct = (v, d = 1) => (v === null || v === undefined || !isFinite(v) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + '%');
+  const fmtDate = (s) => { if (!s) return '—'; const d = new Date(String(s).slice(0, 10) + 'T00:00:00Z'); return isNaN(d) ? s : d3.utcFormat('%-d %b %Y')(d); };
+  const tone = (el, v) => { if (v > 0) el.classList.add('good'); else if (v < 0) el.classList.add('bad'); return el; };
+  const el = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const k in attrs) { if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); } if (text !== undefined) e.textContent = text; return e; };
+  const empty = (box, text) => { box.replaceChildren(el('div', { class: 'empty' }, text)); };
+
+  // A sortable table. cols: [label, key, fmt?, {tone, align}]
+  function table(box, rows, cols, emptyText) {
+    if (!rows || !rows.length) { box.replaceChildren(el('div', { class: 'tw' }, '')); box.firstChild.appendChild(el('div', { class: 'empty' }, emptyText)); return; }
+    const wrap = el('div', { class: 'tw' }), t = el('table'), thead = el('thead'), tr = el('tr'), tb = el('tbody');
+    let data = rows.slice();
+    const draw = () => {
+      tb.replaceChildren();
+      data.forEach((r) => {
+        const row = el('tr');
+        cols.forEach(([, key, fmt, opt = {}]) => {
+          const v = typeof key === 'function' ? key(r) : r[key];
+          const td = el('td', opt.left ? { class: 'l' } : {});
+          if (opt.node) td.appendChild(opt.node(r)); else td.textContent = fmt ? fmt(v, r) : (v === null || v === undefined ? '—' : v);
+          if (opt.tone) tone(td, +v);
+          row.appendChild(td);
+        });
+        tb.appendChild(row);
+      });
+    };
+    cols.forEach(([label, key, , opt = {}], i) => {
+      const th = el('th', { tabindex: '0', scope: 'col' }, label);
+      if (opt.left || i === 0) th.className = 'l';
+      if (!opt.node) {
+        const sort = () => {
+          const dir = th.dataset.sort === 'asc' ? 'desc' : 'asc';
+          tr.querySelectorAll('th').forEach((h) => delete h.dataset.sort); th.dataset.sort = dir;
+          const get = (r) => (typeof key === 'function' ? key(r) : r[key]);
+          data.sort((a, b) => { const x = get(a), y = get(b); const nx = +x, ny = +y;
+            const c = isFinite(nx) && isFinite(ny) && x !== '' && y !== '' ? nx - ny : String(x ?? '').localeCompare(String(y ?? '')); return dir === 'asc' ? c : -c; });
+          draw();
+        };
+        th.addEventListener('click', sort); th.addEventListener('keydown', (e) => { if (e.key === 'Enter') sort(); });
+      }
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr); t.append(thead, tb); wrap.appendChild(t); box.replaceChildren(wrap); draw();
+  }
+
+  function tiles(D, S) {
+    const box = $('kpis'); box.replaceChildren();
+    const add = (lab, big, sub, v) => {
+      const t = el('div', { class: 'tile' }); t.appendChild(el('span', { class: 'lab' }, lab));
+      const b = el('span', { class: 'big' }, big); if (v !== undefined) tone(b, v); t.appendChild(b);
+      if (sub) t.appendChild(el('span', { class: 'sub' }, sub)); box.appendChild(t);
+    };
+    add('Account value', inr(S.equity), 'started with ' + inr(S.start) + ' on ' + fmtDate(S.startDate));
+    add('Return so far', pct(S.ret), 'Smallcap 250 ' + pct(S.idx) + ' over the same days', S.ret);
+    add('Closed trades', String(S.n), S.n ? `${S.wins} won (${Math.round(100 * S.wins / S.n)}%) · avg ${pct(S.avg, 2)} on the position` : 'none yet');
+    add('Profit booked', inr(S.booked), S.n ? 'after ' + inr(S.costs) + ' of costs' : 'from closed trades', S.booked);
+    add('Open positions', String(S.open), S.open ? inr(S.inUse) + ' of margin in use, ' + inr(S.unreal) + ' unrealised' : 'nothing held');
+    add('Worst fall from a high', pct(S.dd), S.ddDate ? 'on ' + fmtDate(S.ddDate) : '', S.dd < 0 ? -1 : 0);
+    add('Per-share limit', inr(D.meta.limit), (D.meta.quarter || '') + ' · cash trades with a dividend of 1.5%+ get twice this');
+  }
+
+  function stats(D) {
+    const eq = D.equity || [], tr = D.trades || [], pos = D.positions || [];
+    const start = D.meta.start_capital || START_DEFAULT, startDate = D.meta.start_date;
+    const base = eq.filter((r) => r.date <= startDate).slice(-1)[0] || eq[0];
+    const after = eq.filter((r) => r.date >= (base ? base.date : startDate));
+    const last = eq[eq.length - 1];
+    const equity = last ? last.equity : start;
+    let peak = -Infinity, dd = 0, ddDate = null;
+    after.forEach((r) => { peak = Math.max(peak, r.equity); const x = r.equity / peak - 1; if (x < dd) { dd = x; ddDate = r.date; } });
+    const idxRows = after.filter((r) => isFinite(r.smallcap250) && r.smallcap250);
+    const idx = idxRows.length > 1 ? 100 * (idxRows[idxRows.length - 1].smallcap250 / idxRows[0].smallcap250 - 1) : null;
+    const pnl = tr.map((t) => +t.pnl);
+    return { start, startDate, equity, ret: 100 * (equity / start - 1), idx, dd: 100 * dd, ddDate, n: tr.length, wins: pnl.filter((p) => p > 0).length,
+      avg: tr.length ? d3.mean(tr, (t) => +t.pnl_pct_position) : null, booked: d3.sum(pnl), costs: d3.sum(tr, (t) => +t.charges + (+t.impact || 0)),
+      open: pos.length, inUse: d3.sum(pos, (p) => +p.margin), unreal: d3.sum(pos, (p) => +p.unrealized || 0), base, after };
+  }
+
+  function header(D, S) {
+    if (D.title) { $('title').textContent = D.title; document.title = D.title === 'Dividend run-up paper trading' ? 'Dividend Paper Trader' : D.title; }
+    if (D.note) { $('note').textContent = D.note; $('note').hidden = false; $('today').hidden = true; $('bot').hidden = true; }
+    const st = $('status'); st.replaceChildren();
+    const today = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+    const started = today >= S.startDate;
+    const p = el('span', { class: 'pill ' + (D.note ? '' : started ? 'ok' : 'warn') }); p.appendChild(el('i'));
+    p.appendChild(document.createTextNode(D.note ? 'Example data' : started ? 'Paper trading running' : 'Starts on ' + fmtDate(S.startDate)));
+    st.appendChild(p);
+    st.appendChild(el('span', {}, 'Updated ' + D.generated + ' India time · last end-of-day run for ' + fmtDate(D.meta.last_run)));
+    const lede = $('lede'); lede.replaceChildren();
+    lede.append('₹' + Math.round(S.start).toLocaleString('en-IN') + ' put in on ' + fmtDate(S.startDate) + ' is now ');
+    lede.appendChild(tone(el('b', { class: 'num' }, inr(S.equity) + ' (' + pct(S.ret) + ')'), S.ret));
+    lede.append('. The same money in the Nifty Smallcap 250 would have changed by ');
+    lede.appendChild(el('b', { class: 'num' }, pct(S.idx)));
+    lede.append(S.n ? ` · ${S.n} trades closed so far.` : ' · no trades closed yet.');
+  }
+
+  function today(D) {
+    const plan = D.plan;
+    $('today-h').textContent = plan ? 'Live trading on ' + fmtDate(plan.date) : 'Live trading';
+    const buys = plan ? plan.buys || [] : [];
+    table($('plan-buys'), buys, [
+      ['Stock', 'symbol', null, { left: true }], ['Broker', 'broker'], ['Dividend %', 'dividend_pct', (v) => num(v)],
+      ['Planned', 'target', (v) => inr(v)], ['Bought', 'bought_value', (v) => inr(v)],
+      ['Progress', 'slices', null, { node: (r) => { const d = el('div', { class: 'prog', title: r.slices + ' of 5 slices' }); const s = el('span'); s.style.width = Math.min(100, 100 * r.bought_value / Math.max(r.target, 1)) + '%'; d.appendChild(s); return d; } }],
+      ['Status', (r) => r.status + (r.note ? ' · ' + r.note : ''), null, { left: true }],
+    ], plan ? 'No dividend is due for buying today. (Plan made ' + plan.made_at + '.)' : 'The first plan is made on the first trading day at 8:27 am.');
+    const pos = D.positions || [], d = plan ? plan.date : null;
+    table($('plan-watch'), pos, [
+      ['Stock', 'symbol', null, { left: true }], ['Buy', 'avg_cost', (v) => num(v)], ['Stop', 'stop', (v) => num(v)],
+      ['Sell on', 'sell_date', (v) => fmtDate(v)],
+      ['Today', (r) => (d && r.sell_date < d ? 'late sale at 9:20 am' : d && r.sell_date === d ? 'sell 3:05 + 3:20 pm' : 'hold, watch stop'), null, { left: true }],
+      ['Watched today', (r) => (r.watched && r.watched.date === d ? r.watched.minutes + ' min' : '—')],
+    ], 'Nothing held, so nothing to sell or watch.');
+    const fills = (D.fills || []).slice().reverse();
+    table($('fills'), fills, [
+      ['Time', 'time', null, { left: true }], ['Stock', 'symbol', null, { left: true }], ['Side', 'side'], ['Qty', 'qty', (v) => Math.round(v).toLocaleString('en-IN')],
+      ['Price', 'price', (v) => num(v)], ['Value', 'value', (v) => inr(v)], ['Best bid', 'best_bid', (v) => num(v)], ['Best offer', 'best_ask', (v) => num(v)],
+      ['Why', 'why', null, { left: true }],
+    ], 'No paper orders yet. They appear here as the live trader fills them against the real Upstox order book.');
+  }
+
+  function equityChart(D, S) {
+    const box = $('eq-chart'); box.replaceChildren();
+    const rows = S.after.map((r) => ({ d: new Date(r.date + 'T00:00:00Z'), eq: +r.equity, inv: +r.invested || 0, idx: +r.smallcap250 }));
+    if (rows.length < 2) { box.style.minHeight = '0'; empty(box, 'The chart starts after the first two trading days.'); return; }
+    box.style.minHeight = '';
+    const i0 = rows.find((r) => isFinite(r.idx) && r.idx).idx;
+    rows.forEach((r) => { r.im = isFinite(r.idx) && r.idx ? S.start * r.idx / i0 : NaN; });
+    const W = box.clientWidth || 700, H = Math.max(230, Math.min(340, W * 0.42)), m = { t: 10, r: 14, b: 26, l: 10 };
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Paper account value and the same money in the Nifty Smallcap 250, by day');
+    const vals = rows.flatMap((r) => [r.eq, r.im].filter(isFinite));
+    const lo = Math.min(d3.min(vals), S.start) * 0.97, hi = d3.max(vals) * 1.02;
+    const y = d3.scaleLinear().domain([lo, hi]).nice().range([H - m.b, m.t]);
+    const ya = svg.append('g').call(d3.axisLeft(y).ticks(5).tickFormat((v) => '₹' + (v / 1e5).toFixed(v % 1e5 ? 1 : 0) + ' L'));
+    let lw = 0; ya.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+    m.l = lw + 14; ya.attr('transform', `translate(${m.l},0)`); ya.select('.domain').remove(); ya.selectAll('.tick line').remove();
+    const x = d3.scaleUtc().domain(d3.extent(rows, (r) => r.d)).range([m.l, W - m.r]);
+    svg.insert('g', ':first-child').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(W - m.r - m.l)).tickFormat('')).select('.domain').remove();
+    const spanDays = (rows[rows.length - 1].d - rows[0].d) / 864e5;
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.max(3, Math.floor(W / 100))).tickFormat(d3.utcFormat(spanDays > 120 ? '%b' : '%-d %b')));
+    const inv = d3.scaleLinear().domain([0, Math.max(S.start, d3.max(rows, (r) => r.inv))]).range([H - m.b, H - m.b - (H - m.b - m.t) * 0.35]);
+    svg.append('path').datum(rows).attr('d', d3.area().curve(d3.curveStepAfter).x((r) => x(r.d)).y0(H - m.b).y1((r) => inv(r.inv))).style('fill', 'var(--invest)').style('opacity', 0.7);
+    svg.append('path').datum(rows.filter((r) => isFinite(r.im))).attr('d', d3.line().x((r) => x(r.d)).y((r) => y(r.im))).style('fill', 'none').style('stroke', 'var(--index)').style('stroke-width', 1.75);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(S.start)).attr('y2', y(S.start)).style('stroke', 'var(--muted)').style('stroke-dasharray', '3 4').style('opacity', 0.6);
+    svg.append('path').datum(rows).attr('d', d3.line().x((r) => x(r.d)).y((r) => y(r.eq))).style('fill', 'none').style('stroke', 'var(--accent)').style('stroke-width', 2.25);
+    const last = rows[rows.length - 1];
+    svg.append('circle').attr('cx', x(last.d)).attr('cy', y(last.eq)).attr('r', 3.5).style('fill', 'var(--accent)');
+    const tip = d3.select(box).append('div').attr('class', 'tip').style('display', 'none');
+    const rule = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--muted)').style('display', 'none');
+    const dot = svg.append('circle').attr('r', 4).style('fill', 'var(--accent)').style('display', 'none');
+    const bis = d3.bisector((r) => r.d).center;
+    svg.on('pointermove', (ev) => {
+      const [px] = d3.pointer(ev), r = rows[bis(rows, x.invert(px))]; if (!r) return;
+      rule.attr('x1', x(r.d)).attr('x2', x(r.d)).style('display', null); dot.attr('cx', x(r.d)).attr('cy', y(r.eq)).style('display', null);
+      tip.style('display', null).html('');
+      tip.append('div').style('font-weight', '600').text(d3.utcFormat('%a %-d %b %Y')(r.d));
+      tip.append('div').text('Account ' + inr(r.eq) + ' (' + pct(100 * (r.eq / S.start - 1)) + ')');
+      tip.append('div').text('Index money ' + inr(r.im));
+      tip.append('div').text('In open trades ' + inr(r.inv));
+      const tw = tip.node().offsetWidth; tip.style('left', Math.min(Math.max(0, x(r.d) + 12), W - tw) + 'px').style('top', '6px');
+    }).on('pointerleave', () => { tip.style('display', 'none'); rule.style('display', 'none'); dot.style('display', 'none'); });
+  }
+
+  function positions(D) {
+    table($('positions'), D.positions || [], [
+      ['Stock', 'symbol', null, { left: true }], ['Broker', 'broker'], ['Bought', 'buy_date', (v) => fmtDate(v)], ['Buy price', 'avg_cost', (v) => num(v)],
+      ['Last close', 'last_close', (v) => num(v)], ['Unrealised', 'unrealized', (v) => inr(v), { tone: true }], ['Stop', 'stop', (v) => num(v)],
+      ['Sell on', 'sell_date', (v) => fmtDate(v)], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
+      ['Position', 'position', (v) => inr(v)], ['Margin', 'margin', (v) => inr(v)],
+      ['Bought on', (r) => (String(r.buy_mode || '').startsWith('live') ? 'live ticks' : '1-minute candles'), null, { left: true }],
+    ], 'Nothing held right now.');
+  }
+
+  function signals(D) {
+    const s = D.signals || [];
+    const watching = s.filter((r) => r.status !== 'skip'), skipped = s.filter((r) => r.status === 'skip');
+    table($('signals'), watching, [
+      ['Stock', 'symbol', null, { left: true }], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Buy day', 'buy_day', (v) => fmtDate(v)],
+      ['Sell day', 'last_cum_day', (v) => fmtDate(v)], ['Dividend ₹', 'dividend', (v) => num(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
+      ['Mcap (₹ cr)', 'mcap_cr', (v) => (v ? Math.round(v).toLocaleString('en-IN') : '—')], ['Status', 'status', null, { left: true }],
+    ], 'No dividend that passes the rules is coming up in the next 25 trading days. New ones are picked up every morning and evening.');
+    table($('skipped'), skipped, [
+      ['Stock', 'symbol', null, { left: true }], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
+      ['Mcap (₹ cr)', 'mcap_cr', (v) => (v ? Math.round(v).toLocaleString('en-IN') : '—')], ['Why skipped', 'reason', null, { left: true }],
+    ], 'None skipped.');
+  }
+
+  function months(D, S) {
+    const tr = D.trades || [];
+    const ms = Array.from(new Set(S.after.map((r) => r.date.slice(0, 7)).concat(tr.map((t) => String(t.sell_date).slice(0, 7))))).sort();
+    let prevIdx = S.after.length ? S.after[0].smallcap250 : null;
+    const rows = ms.map((m) => {
+      const days = S.after.filter((r) => r.date.slice(0, 7) === m), lastd = days[days.length - 1];
+      const t = tr.filter((x) => String(x.sell_date).slice(0, 7) === m);
+      const li = lastd ? lastd.smallcap250 : null;
+      const r = { month: m, trades: t.length, wins: t.filter((x) => x.pnl > 0).length, stops: t.filter((x) => String(x.exit_reason).includes('stop')).length,
+        pnl: d3.sum(t, (x) => +x.pnl), idx: li && prevIdx ? 100 * (li / prevIdx - 1) : null, eq: lastd ? lastd.equity : null };
+      if (li) prevIdx = li; return r;
+    });
+    const box = $('m-chart'); box.replaceChildren();
+    if (!tr.length) { box.style.minHeight = '0'; empty($('m-table'), 'Months fill in as trades close.'); return; }
+    box.style.minHeight = '';
+    const W = box.clientWidth || 700, H = 200, m = { t: 18, r: 8, b: 24, l: 10 };
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Profit after costs of the trades sold in each month');
+    const ext = d3.extent(rows, (r) => r.pnl);
+    const y = d3.scaleLinear().domain([Math.min(0, ext[0]) * 1.15, Math.max(0, ext[1]) * 1.15 || 1]).nice().range([H - m.b, m.t]);
+    const ya = svg.append('g').call(d3.axisLeft(y).ticks(4).tickFormat((v) => (v / 1000).toFixed(0) + 'k'));
+    let lw = 0; ya.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+    m.l = lw + 12; ya.attr('transform', `translate(${m.l},0)`); ya.select('.domain').remove();
+    const x = d3.scaleBand().domain(rows.map((r) => r.month)).range([m.l, W - m.r]).padding(0.28);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--muted)').style('opacity', 0.5);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickFormat((s) => d3.utcFormat('%b')(new Date(s + '-01T00:00:00Z')))).select('.domain').remove();
+    svg.selectAll('rect.b').data(rows).join('rect').attr('class', 'b').attr('x', (r) => x(r.month)).attr('width', x.bandwidth())
+      .attr('y', (r) => y(Math.max(0, r.pnl))).attr('height', (r) => Math.max(1, Math.abs(y(r.pnl) - y(0)))).attr('rx', 2)
+      .style('fill', (r) => (r.pnl >= 0 ? 'var(--good)' : 'var(--bad)'));
+    if (x.bandwidth() > 24) svg.selectAll('text.v').data(rows).join('text').attr('text-anchor', 'middle').attr('x', (r) => x(r.month) + x.bandwidth() / 2)
+      .attr('y', (r) => (r.pnl >= 0 ? y(r.pnl) - 4 : y(r.pnl) + 12)).text((r) => (r.pnl ? (r.pnl / 1000).toFixed(0) + 'k' : ''));
+    const tip = d3.select(box).append('div').attr('class', 'tip').style('display', 'none');
+    svg.selectAll('rect.b').on('pointerenter', (ev, r) => {
+      tip.style('display', null).html('');
+      tip.append('div').style('font-weight', '600').text(d3.utcFormat('%B %Y')(new Date(r.month + '-01T00:00:00Z')));
+      tip.append('div').text(`${r.trades} trades sold, ${r.wins} won, ${r.stops} stop-losses`);
+      tip.append('div').text('Profit ' + inr(r.pnl) + ' · Smallcap 250 ' + pct(r.idx));
+      const tw = tip.node().offsetWidth; tip.style('left', Math.min(Math.max(0, x(r.month)), W - tw) + 'px').style('top', '0px');
+    }).on('pointerleave', () => tip.style('display', 'none'));
+    table($('m-table'), rows, [
+      ['Month', 'month', (v) => d3.utcFormat('%b %Y')(new Date(v + '-01T00:00:00Z')), { left: true }], ['Trades', 'trades'], ['Won', 'wins'], ['Stops', 'stops'],
+      ['Profit', 'pnl', (v) => inr(v), { tone: true }], ['Smallcap 250', 'idx', (v) => pct(v), { tone: true }], ['Account at month end', 'eq', (v) => inr(v)],
+    ], '');
+  }
+
+  function groups(D) {
+    const tr = D.trades || [], box = $('groups'); box.replaceChildren();
+    if (!tr.length) { box.appendChild(el('div', { class: 'empty' }, 'Shown once trades have closed: profit by dividend size, company size, broker and exit.')); return; }
+    const band = (x, edges, labs) => { for (let i = 0; i < labs.length; i++) if (x >= edges[i] && x < edges[i + 1]) return labs[i]; return labs[labs.length - 1]; };
+    const defs = [
+      ['Dividend size (% of price)', (t) => band(+t.dividend_pct, [0, 1, 1.5, 1e9], ['0.5-1%', '1-1.5%', '1.5% and more']), ['0.5-1%', '1-1.5%', '1.5% and more']],
+      ['Company size (market cap)', (t) => band(+t.mcap_cr, [0, 1000, 1500, 2000, 1e12], ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr']), ['500-1,000 cr', '1,000-1,500 cr', '1,500-2,000 cr', '2,000-2,500 cr']],
+      ['Broker', (t) => t.broker, ['Kite MTF', 'Upstox MTF', 'Groww MTF', 'Cash']],
+      ['How the trade ended', (t) => (String(t.exit_reason).includes('stop') ? '10% stop-loss' : 'Sold on last cum day'), ['Sold on last cum day', '10% stop-loss']],
+    ];
+    defs.forEach(([title, fn, order]) => {
+      const g = d3.group(tr, fn);
+      const rows = order.filter((k) => g.has(k)).map((k) => { const t = g.get(k); return { group: k, n: t.length, win: Math.round(100 * t.filter((x) => x.pnl > 0).length / t.length), avg: d3.mean(t, (x) => +x.pnl_pct_position), pnl: d3.sum(t, (x) => +x.pnl) }; });
+      const mx = d3.max(rows, (r) => Math.abs(r.pnl)) || 1, neg = d3.min(rows, (r) => r.pnl) < 0;
+      const card = el('div'); card.appendChild(el('h3', { style: 'margin-bottom:8px' }, title)); const tb = el('div'); card.appendChild(tb); box.appendChild(card);
+      table(tb, rows, [['Group', 'group', null, { left: true }], ['Trades', 'n'], ['Won %', 'win'], ['Avg %', 'avg', (v) => num(v), { tone: true }], ['Profit', 'pnl', (v) => inr(v), { tone: true }],
+        ['', 'pnl', null, { node: (r) => { const b = el('div', { class: 'bar' }), s = el('span'), z = el('b'); const zero = neg ? 50 : 0, w = (neg ? 50 : 100) * Math.abs(r.pnl) / mx;
+          s.style.left = (r.pnl >= 0 ? zero : zero - w) + '%'; s.style.width = w + '%'; s.style.background = r.pnl >= 0 ? 'var(--good)' : 'var(--bad)'; z.style.left = zero + '%'; b.append(s, z); return b; } }]], '');
+    });
+  }
+
+  function trades(D) {
+    const tr = (D.trades || []).slice().sort((a, b) => String(b.sell_date).localeCompare(String(a.sell_date)));
+    const how = (r) => { const a = String(r.buy_mode || '').startsWith('live'), b = String(r.sell_mode || '').startsWith('live'); return a && b ? 'live ticks' : a || b ? 'partly live' : '1-minute candles'; };
+    table($('trades'), tr, [
+      ['Stock', 'symbol', null, { left: true }], ['Broker', 'broker'], ['Div %', 'dividend_pct', (v) => num(v)], ['Bought', 'buy_date', (v) => fmtDate(v)],
+      ['Buy', 'avg_cost', (v) => num(v)], ['Sold', 'sell_date', (v) => fmtDate(v)], ['Sell', 'exit_price', (v) => num(v)], ['Why', 'exit_reason', null, { left: true }],
+      ['Position', 'position', (v) => inr(v)], ['Costs', (r) => +r.charges + (+r.impact || 0), (v) => inr(v)], ['Profit', 'pnl', (v) => inr(v), { tone: true }],
+      ['On position %', 'pnl_pct_position', (v) => num(v), { tone: true }], ['On margin %', 'pnl_pct_margin', (v) => num(v), { tone: true }], ['Traded on', how, null, { left: true }],
+    ], 'No trade has closed yet. A trade closes on its last cum day (or at the 10% stop).');
+  }
+
+  function bot(D) {
+    const s = D.settings || {}, m = D.minutes || {};
+    const box = $('settings'); box.replaceChildren();
+    const ul = el('ul');
+    ul.appendChild(el('li', {}, s.watch_holding_days ? 'Held shares are watched live all day for the stop-loss.' : 'Held shares: the stop-loss is checked at 9 pm from the day\'s low (live watching only on buy and sell days).'));
+    ul.appendChild(el('li', {}, s.buy_hours === 'morning' ? 'Buying in 5 slices between 9:30 and 11:30 am.' : 'Buying in 5 slices across the day (9:30 am to 2:00 pm).'));
+    ul.appendChild(el('li', {}, s.monthly_minute_budget ? `GitHub minutes guard: ${s.monthly_minute_budget} a month for the live jobs.` : 'No GitHub minutes limit (public repository).'));
+    const months = Object.keys(m).sort();
+    if (months.length) ul.appendChild(el('li', {}, 'Live-job minutes used: ' + months.slice(-3).map((k) => k + ' ' + Math.round(m[k])).join(', ')));
+    box.appendChild(ul);
+    $('eodlog').textContent = (D.eod_log || []).join('\n') || 'No end-of-day run yet.';
+    $('livelog').textContent = (D.live_log || []).join('\n') || 'No live trading log yet.';
+    $('livelog-s').textContent = 'Live trader log' + (D.live_log_date ? ' (' + fmtDate(D.live_log_date) + ')' : '');
+  }
+
+  let D = null;
+  const render = () => { const S = stats(D); header(D, S); tiles(D, S); today(D); equityChart(D, S); positions(D); signals(D); months(D, S); groups(D); trades(D); bot(D); };
+  fetch('data/dashboard.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then((j) => { D = j; render(); let w = window.innerWidth; window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - w) > 40) { w = window.innerWidth; render(); } }); })
+    .catch((e) => { $('status').replaceChildren(el('span', { class: 'pill bad' }, 'The data file did not load (' + e.message + '). Try again in a minute.')); });
+})();
+</script>
+</body>
+</html>

@@ -29,6 +29,15 @@ def log(m):
     print(m, flush=True); LOG.append(m)
 
 
+def alert(sd, text):
+    """A problem the owner should hear about: the workflow turns state/alerts_pending.md into a GitHub issue (= email)."""
+    f = Path(sd) / "alerts_pending.md"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    with open(f, "a", encoding="utf-8") as h:
+        h.write(f"- {datetime.now(IST):%d %b %Y %H:%M}: {text}" + chr(10))
+    log("ALERT " + text)
+
+
 # ---------------------------------------------------------------- data access
 _op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 _op.addheaders = [("User-Agent", UA), ("Accept", "application/json,text/csv,*/*"), ("Accept-Language", "en-US,en;q=0.9"), ("Referer", "https://www.nseindia.com/")]
@@ -423,6 +432,9 @@ def run(today, sd, start=None):
     kite, ups, groww, ISIN = mtf_lists(today)
     started = today.isoformat() >= meta["start_date"]
     MODE = "1-minute candles (backup)"
+    recent = started and today >= REAL_TODAY - timedelta(days=4)          # alerts only for live paper trading, not for tests of the past
+    st_file = ROOT / "paper/settings.json"
+    watch_all = bool(json.loads(st_file.read_text()).get("watch_holding_days")) if st_file.exists() else False
     update_quarter(today, meta, pos)
     lp = sd / "live" / f"{today}_plan.json"
     live_plan = {b["symbol"]: b for b in json.loads(lp.read_text())["buys"]} if lp.exists() else {}
@@ -452,6 +464,8 @@ def run(today, sd, start=None):
         if sold.get("sold_qty", 0) > 0:                       # part already sold live before the live job stopped
             exit_px = (sold["sold_value"] + (p["qty"] - sold["sold_qty"]) * exit_px) / p["qty"]
         trades = close_position(p, exit_px, how, today, meta, trades, n_sell_orders=1 if "stop" in how else 2, day_value=r.value_cr * 1e7, mode=MODE)
+        if recent and ("stop" not in how or watch_all):
+            alert(sd, f"{p['symbol']}: the live trader did not {'sell' if 'stop' not in how else 'apply the stop to'} it today, so the 9 pm backup sold it on daily prices ({how}, {exit_px:.2f}).")
     pos = keep
 
     # ---- 2. signals and buys (a dividend the live trader already tried today is not bought again here)
@@ -472,6 +486,8 @@ def run(today, sd, start=None):
             st.update(status="skip", reason="too small"); continue
         buy_imp = RULES["IMPACT_Y"] * b["sigma"] * math.sqrt(V / max(r.value_cr * 1e7, 1))
         pos.append(open_position(b, px, V / px, today, meta, buy_impact=buy_imp, mode=MODE))
+        if recent:
+            alert(sd, f"{b['symbol']}: the live trader did not buy it today, so the 9 pm backup bought it on 1-minute candles at {px:.2f}.")
         st["status"] = "bought"
     signals = pd.DataFrame(sig_rows)
 
@@ -519,7 +535,7 @@ if __name__ == "__main__":
                 x += timedelta(days=1)
             days = missed[-10:] + [today]
             if missed:
-                log(f"Catching up on {len(missed[-10:])} missed trading day(s): {', '.join(str(m) for m in missed[-10:])}")
+                alert(sd, f"The end-of-day run had not run for {', '.join(str(m) for m in missed[-10:])} (GitHub skipped or delayed it); caught up now.")
     weekly = False
     for d in days:
         out = None

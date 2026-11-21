@@ -1,11 +1,12 @@
 name: live-paper-trading
-# Real-time paper trading on the Upstox live feed (no real orders). Three parts of the day, India time:
-#   8:27 am  morning: plan the day (new dividends + all rules); on a buy day wait for the open, live buying until 12:20
+# Real-time paper trading on the Upstox live feed (no real orders). Parts of the day, India time:
+#   8:27 am  morning: plan the day (new dividends + all rules), look at the news again at 9:05, then live trading until 12:20
 #   8:52 am  morning again: spare start in case GitHub delays or skips the first (does nothing if the first is running)
-#   11:40 am afternoon: queued behind the morning job, so it starts the moment that ends; buying until 3:00 pm (3:30 pm if a sale is due)
-#   2:15 pm  sells: waits, then live selling at 3:05 / 3:20 pm on a last cum day
-# Each job starts 20-45 minutes early so GitHub's usual start delays do not make it late.
-# On quiet days each part takes about a minute. The 9 pm workflow (daily.yml) finishes the day and backs up anything missed.
+#   11:40 am afternoon: queued behind the morning job, so it starts the moment that ends; live until 3:30 pm
+#   2:15 pm  sells: spare for last-cum-day sales at 3:05 / 3:20 pm (does nothing if the afternoon job already handles them)
+# Each job starts 20-45 minutes early so GitHub's usual start delays do not make it late. On a day with nothing to buy, sell
+# or hold, each part takes about a minute. The 9 pm workflow (daily.yml) finishes the day and backs up anything missed.
+# Any problem opens a GitHub issue that mentions the owner (= an email).
 on:
   schedule:
     - cron: "57 2 * * 1-5"
@@ -21,6 +22,7 @@ on:
         default: test
 permissions:
   contents: write
+  issues: write
 concurrency:
   group: live-trading
   cancel-in-progress: false
@@ -67,11 +69,28 @@ jobs:
         env:
           UPSTOX_ACCESS_TOKEN: ${{ secrets.UPSTOX_ACCESS_TOKEN }}
         run: python paper/live.py --job ${{ steps.which.outputs.job }}
-      - name: Save to the repo
+      - name: Failure email (GitHub issue)
+        if: failure() && hashFiles('state/alerts_pending.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Paper bot: the ${{ steps.which.outputs.job }} job failed ($(TZ=Asia/Kolkata date +'%d %b %H:%M'))" \
+            --body "@AjBhutada the live paper-trading job stopped with an error. The 9 pm backup run will cover the day. Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Problem email (GitHub issue)
+        if: always() && hashFiles('state/alerts_pending.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "@AjBhutada the paper-trading bot needs a look:"; echo; cat state/alerts_pending.md; echo;
+            echo "Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"; } > "$RUNNER_TEMP/alert.md"
+          gh issue create --title "Paper bot alert: $(TZ=Asia/Kolkata date +'%d %b %H:%M')" --body-file "$RUNNER_TEMP/alert.md"
+          rm -f state/alerts_pending.md
+      - name: Save to the repo and refresh the dashboard
         if: always() && steps.which.outputs.need == 'true' && steps.which.outputs.job != 'test'
         run: |
+          python paper/report.py --state state --out docs/data/dashboard.json || true
           git config user.name "paper-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A state
+          git add -A state docs/data
           git commit -q -m "Live paper trading $(TZ=Asia/Kolkata date '+%F %H:%M') (${{ steps.which.outputs.job }})" || { echo "Nothing new to save"; exit 0; }
           for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done

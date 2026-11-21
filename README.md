@@ -1,6 +1,8 @@
 # Dividend run-up paper trading
 
-_Updated after the close on 21 Nov 2026. Paper money only: no real orders are placed._
+**Dashboard: https://ajbhutada.github.io/dividend-paper-trader/**
+
+_Updated after the close on 20 Nov 2026. Paper money only: no real orders are placed._
 
 | | |
 |---|---|
@@ -41,4 +43,4 @@ _None yet._
 - Size: 10% of capital at the start of each quarter as margin per share (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
-Interactive version: download `dashboard.html` from this repo and open it in a browser. Research and paper trading only, not investment advice.
+**Live dashboard: https://ajbhutada.github.io/dividend-paper-trader/** (updated after every bot job). Example with a full year of past-data trades: https://ajbhutada.github.io/dividend-paper-trader/example-2026/. Research and paper trading only, not investment advice.

@@ -1,7 +1,8 @@
 name: daily-paper-trading
 # 9 pm India time, after NSE publishes the day's files. Marks positions at the official close, refreshes the dividend list,
-# rebuilds the dashboard, and on the last trading day of the week opens an issue (= email) with the weekly report.
+# rebuilds the dashboard (GitHub Pages: docs/), and on the last trading day of the week opens an issue (= email) with the weekly report.
 # Anything the live trader did not handle today is traded here on 1-minute candles, and a day a skipped run left out is caught up.
+# Any problem opens a GitHub issue that mentions the owner (= an email).
 on:
   schedule:
     - cron: "30 15 * * 1-5"        # 9:00 pm India
@@ -37,14 +38,32 @@ jobs:
       - name: Paper-trade the day
         run: python paper/engine.py ${{ inputs.date && format('--date {0}', inputs.date) || '' }}
       - name: Keep the data cache small
+        if: always()
         run: |
           find .cache/candles -type f -mtime +20 -delete 2>/dev/null || true
           find .cache/lists -type f -mtime +5 -delete 2>/dev/null || true
-      - name: Save results to the repo
+      - name: Failure email (GitHub issue)
+        if: failure() && hashFiles('state/alerts_pending.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Paper bot: the 9 pm run failed ($(TZ=Asia/Kolkata date +'%d %b %H:%M'))" \
+            --body "@AjBhutada the end-of-day run stopped with an error. The 11:30 pm spare run or tomorrow's run will catch the day up. Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Problem email (GitHub issue)
+        if: always() && hashFiles('state/alerts_pending.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "@AjBhutada the paper-trading bot needs a look:"; echo; cat state/alerts_pending.md; echo;
+            echo "Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"; } > "$RUNNER_TEMP/alert.md"
+          gh issue create --title "Paper bot alert: $(TZ=Asia/Kolkata date +'%d %b %H:%M')" --body-file "$RUNNER_TEMP/alert.md"
+          rm -f state/alerts_pending.md
+      - name: Save results and the dashboard to the repo
+        if: always()
         run: |
           git config user.name "paper-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A state README.md charts dashboard.html reports
+          git add -A state README.md charts dashboard.html reports docs/data 2>/dev/null || git add -A
           git commit -q -m "Paper trading: $(TZ=Asia/Kolkata date +%F)" || echo "Nothing new to save"
           for i in 1 2 3 4; do git pull -q --rebase && git push -q && break; sleep 10; done
       - name: Weekly report email (GitHub issue)

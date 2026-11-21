@@ -105,6 +105,8 @@ def build(root, sd, today, R, weekly=False):
     S = "| | |\n|---|---|\n" + "".join(f"| {a} | {b} |\n" for a, b in summary)
     readme = f"""# Dividend run-up paper trading
 
+**Dashboard: https://ajbhutada.github.io/dividend-paper-trader/**
+
 _Updated after the close on {today:%d %b %Y}. Paper money only: no real orders are placed._
 
 {S}
@@ -127,7 +129,7 @@ _Updated after the close on {today:%d %b %Y}. Paper money only: no real orders a
 - Size: 10% of capital at the start of each quarter as margin per share (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
-Interactive version: download `dashboard.html` from this repo and open it in a browser. Research and paper trading only, not investment advice.
+**Live dashboard: https://ajbhutada.github.io/dividend-paper-trader/** (updated after every bot job). Example with a full year of past-data trades: https://ajbhutada.github.io/dividend-paper-trader/example-2026/. Research and paper trading only, not investment advice.
 """
     (root / "README.md").write_text(readme, encoding="utf-8")
 
@@ -159,6 +161,8 @@ th{{background:#eef1ee;cursor:pointer}}.tw{{overflow-x:auto;background:#fff;bord
 const num=s=>parseFloat(s.replace(/[₹,%+]/g,''));const asc=th.dataset.a!=='1';th.dataset.a=asc?'1':'0';rows.sort((a,b)=>{{const x=a.cells[i].innerText,y=b.cells[i].innerText;
 const nx=num(x),ny=num(y);return (isNaN(nx)||isNaN(ny)?x.localeCompare(y):nx-ny)*(asc?1:-1)}});rows.forEach(r=>t.tBodies[0].appendChild(r))}}))</script></body></html>"""
     (root / "dashboard.html").write_text(page, encoding="utf-8")
+    if (root / "docs").exists() or root.resolve() == Path(__file__).resolve().parent.parent:
+        dashboard_json(sd, root / "docs/data/dashboard.json")
 
     # ---- weekly report on the last trading day of the week
     if weekly:
@@ -175,8 +179,59 @@ const nx=num(x),ny=num(y);return (isNaN(nx)||isNaN(ny)?x.localeCompare(y):nx-ny)
 {md_table(open_df)}
 ### Coming up
 {md_table(up_df)}
-Full dashboard: the repository's main page. Paper trading only, not investment advice.
+Full dashboard: https://ajbhutada.github.io/dividend-paper-trader/ . Paper trading only, not investment advice.
 """
         (root / "reports").mkdir(parents=True, exist_ok=True)
         (root / "reports/weekly_pending.md").write_text(body, encoding="utf-8")
         (root / f"reports/weekly_{today.isoformat()}.md").write_text(body, encoding="utf-8")
+
+
+# ---------------------------------------------------------------- data for the live dashboard (GitHub Pages: docs/index.html)
+def _rows(df):
+    if df is None or not len(df):
+        return []
+    return json.loads(df.to_json(orient="records", force_ascii=False))
+
+
+def dashboard_json(sd, out, title="Dividend run-up paper trading", note=""):
+    """Everything the dashboard page shows, in one JSON file. Rebuilt after every bot job."""
+    from datetime import datetime, timezone
+    sd, out = Path(sd), Path(out)
+    rd = lambda f: (sd / f).exists() and (sd / f).stat().st_size > 5
+    meta = json.loads((sd / "meta.json").read_text()) if (sd / "meta.json").exists() else {}
+    pos = json.loads((sd / "positions.json").read_text()) if rd("positions.json") else []
+    tr = pd.read_csv(sd / "trades.csv") if rd("trades.csv") else pd.DataFrame()
+    eq = pd.read_csv(sd / "equity.csv") if rd("equity.csv") else pd.DataFrame()
+    sig = pd.read_csv(sd / "signals.csv") if rd("signals.csv") else pd.DataFrame()
+    live_dir = sd / "live"
+    plans = sorted(live_dir.glob("*_plan.json")) if live_dir.exists() else []
+    plan = json.loads(plans[-1].read_text()) if plans else None
+    if plan:
+        plan.pop("signals", None)
+    fills = []
+    for f in sorted(live_dir.glob("*_fills.csv"))[-15:] if live_dir.exists() else []:
+        if f.stat().st_size > 5:
+            fills += _rows(pd.read_csv(f))
+    logs = sorted(live_dir.glob("*_log.txt")) if live_dir.exists() else []
+    log_tail = logs[-1].read_text(encoding="utf-8").splitlines()[-120:] if logs else []
+    eod_log = (sd / "last_run_log.txt").read_text(encoding="utf-8").splitlines()[-60:] if (sd / "last_run_log.txt").exists() else []
+    minutes = json.loads((live_dir / "github_minutes.json").read_text()) if (live_dir / "github_minutes.json").exists() else {}
+    root = Path(__file__).resolve().parent.parent
+    settings = json.loads((root / "paper/settings.json").read_text()) if (root / "paper/settings.json").exists() else {}
+    ist = timezone(timedelta(hours=5, minutes=30))
+    data = dict(title=title, note=note, generated=datetime.now(ist).strftime("%Y-%m-%d %H:%M"), meta=meta, positions=pos,
+                trades=_rows(tr), equity=_rows(eq), signals=_rows(sig), plan=plan, fills=fills, live_log=log_tail,
+                live_log_date=logs[-1].name[:10] if logs else None, eod_log=eod_log, minutes=minutes,
+                settings={k: v for k, v in settings.items() if not k.startswith("_")})
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, ensure_ascii=False, default=str), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description="Write the dashboard data file only")
+    ap.add_argument("--state", default="state"); ap.add_argument("--out", default="docs/data/dashboard.json")
+    ap.add_argument("--title", default="Dividend run-up paper trading"); ap.add_argument("--note", default="")
+    a = ap.parse_args()
+    dashboard_json(a.state, a.out, a.title, a.note)
+    print("wrote", a.out)

@@ -410,11 +410,11 @@ def main():
     t0 = datetime.strptime(max(start, hhmm()), "%H:%M"); t1 = datetime.strptime(end, "%H:%M")
     need_min = (t1 - t0).total_seconds() / 60 + (t0 - datetime.strptime(hhmm(), "%H:%M")).total_seconds() / 60
     if budget and minutes_used(sd, month) + need_min > budget:
-        E.log(f"{hhmm()} {a.job}: this month's GitHub minutes are nearly used ({minutes_used(sd, month):.0f} of {budget}); "
-              f"the 9 pm run will handle today on 1-minute candles.")
+        E.alert(sd, f"{a.job}: this month's GitHub minutes are nearly used ({minutes_used(sd, month):.0f} of {budget}); "
+                    f"today is traded by the 9 pm backup on 1-minute candles.")
         tr.save(); return 0
     if not token():
-        E.log("No UPSTOX_ACCESS_TOKEN found; the 9 pm run will handle today on 1-minute candles.")
+        E.alert(sd, "No Upstox token found (GitHub secret UPSTOX_ACCESS_TOKEN). Today is traded by the 9 pm backup on 1-minute candles.")
         tr.save(); return 1
     if a.job == "morning" and hhmm() < "09:05" and nothing_bought(tr.plan):
         while hhmm() < "09:05":                 # wait, then take one more look at the news just before the open
@@ -429,13 +429,18 @@ def main():
     while hhmm() < start:
         time.sleep(15)
     keys = tr.keys()
-    st, last_save, reconnects = connect(keys, feed), time.time(), 0
+    st, last_save, reconnects, t_conn, warned = connect(keys, feed), time.time(), 0, time.time(), False
     while hhmm() < end:
         tr.step()
+        if not warned and feed.n == 0 and time.time() - t_conn > 300 and "09:15" <= hhmm() < "15:30":
+            E.alert(sd, f"{a.job}: no live data from Upstox for 5 minutes after connecting (token expired or feed down?). "
+                        "The 9 pm backup will cover anything missed."); warned = True
         if time.time() - last_save > 300:
             tr.save(); last_save = time.time()
         if "09:15" <= hhmm() < "15:30" and time.time() - max(feed.last_rx, t_start) > 180 and reconnects < 20:
             E.log(f"{hhmm()} no data for 3 minutes, reconnecting"); reconnects += 1
+            if reconnects == 5:
+                E.alert(sd, f"{a.job}: the Upstox live feed keeps dropping (5 reconnects so far today).")
             try:
                 st.disconnect()
             except Exception:
@@ -458,4 +463,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as ex:                         # tell the owner, then fail the job so GitHub marks it red too
+        sd_ = Path(sys.argv[sys.argv.index("--state") + 1]) if "--state" in sys.argv else E.ROOT / "state"
+        E.alert(sd_, f"The live trader stopped with an error: {type(ex).__name__}: {str(ex)[:300]}. The 9 pm backup will cover the day.")
+        raise
