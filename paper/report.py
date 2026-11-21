@@ -127,6 +127,7 @@ _Updated after the close on {today:%d %b %Y}. Paper money only: no real orders a
 - Buy on the later of 10 trading days before the ex-date and the first trading day after the record-date news, at the average of calm 1-minute candles (no volume spikes), in 5 orders.
 - Sell at the close of the last cum day; 10% stop-loss below the buy price.
 - All open positions together never more than 2x the account (MTF exposure cap).
+- A stock that lost money in every year it was traded (3+ years) is not bought; its dividends are followed on paper and one profitable year lifts the block.
 - Size: Rs 50,000 margin per share for the paper test (fixed; the past-data tests used 10% of capital at each quarter's start) (Kite, then Upstox, then Groww MTF; otherwise cash, 2x for dividends of 1.5% or more), never more than 10% of the day's traded value.
 - Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP, pledge, MTF interest and an estimate of our own price impact.
 
@@ -204,6 +205,9 @@ def dashboard_json(sd, out, title="Dividend run-up paper trading", note=""):
     tr = pd.read_csv(sd / "trades.csv") if rd("trades.csv") else pd.DataFrame()
     eq = pd.read_csv(sd / "equity.csv") if rd("equity.csv") else pd.DataFrame()
     sig = pd.read_csv(sd / "signals.csv") if rd("signals.csv") else pd.DataFrame()
+    wh = pd.read_csv(sd / "would_have.csv") if rd("would_have.csv") else pd.DataFrame()
+    wh_open = json.loads((sd / "would_have_open.json").read_text()) if rd("would_have_open.json") else []
+    blocked = json.loads((sd / "blocked.json").read_text()) if rd("blocked.json") else []
     live_dir = sd / "live"
     plans = sorted(live_dir.glob("*_plan.json")) if live_dir.exists() else []
     plan = json.loads(plans[-1].read_text()) if plans else None
@@ -223,7 +227,7 @@ def dashboard_json(sd, out, title="Dividend run-up paper trading", note=""):
     data = dict(title=title, note=note, generated=datetime.now(ist).strftime("%Y-%m-%d %H:%M"), meta=meta, positions=pos,
                 trades=_rows(tr), equity=_rows(eq), signals=_rows(sig), plan=plan, fills=fills, live_log=log_tail,
                 live_log_date=logs[-1].name[:10] if logs else None, eod_log=eod_log, minutes=minutes,
-                settings={k: v for k, v in settings.items() if not k.startswith("_")})
+                settings={k: v for k, v in settings.items() if not k.startswith("_")}, blocked=blocked, would_have=_rows(wh), would_have_open=wh_open)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(data, ensure_ascii=False, default=str), encoding="utf-8")
 

@@ -29,3 +29,4 @@ test_2026v_all.log
 tmp_catch/
 tmp_catch_out/
 fill_check.py
+.claude/

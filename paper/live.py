@@ -158,7 +158,7 @@ def build_plan(today, meta, pos):
     T = H[H.date == prev.isoformat()].set_index("symbol")
     kite, ups, groww, ISIN = E.mtf_lists(today)
     E.update_quarter(today, meta, pos)
-    rows, buys = E.evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN)
+    rows, buys, _ = E.evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN)   # would-have trades are followed at 9 pm
     plan = dict(date=today.isoformat(), made_at=CLOCK.now().strftime("%Y-%m-%d %H:%M"), buys=[], signals=rows)
     for b in buys:
         if not b["isin"]:

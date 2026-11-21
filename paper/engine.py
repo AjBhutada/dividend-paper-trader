@@ -262,7 +262,12 @@ def interest(broker, funded, days):
 
 
 # ---------------------------------------------------------------- state
+STATE_DIR = None
+
+
 def load_state(sd, start=None):
+    global STATE_DIR
+    STATE_DIR = Path(sd)
     sd.mkdir(parents=True, exist_ok=True)
     meta = json.loads((sd / "meta.json").read_text()) if (sd / "meta.json").exists() else \
         dict(start_capital=RULES["START_CAPITAL"], start_date=start or RULES["START_DATE"], cash=RULES["START_CAPITAL"], quarter=None, limit=None, last_run=None)
@@ -293,6 +298,57 @@ def SET():
     return _SET
 
 
+# ---------------------------------------------------------------- track record: stop buying a stock that lost money every year
+_BT = None
+
+
+def track_record(sd, meta=None):
+    """Every past result per stock, in % of the position: the 2015-2026 test (paper/lists/track_record.csv; only results before
+    this account's start date, so a test of past days never counts a trade twice), the paper trades (trades.csv) and the
+    'would have' trades (would_have.csv: qualifying dividends the bot did not buy, followed on paper). Year = year of the sale."""
+    global _BT
+    if _BT is None:
+        f = ROOT / "paper/lists/track_record.csv"
+        _BT = pd.read_csv(f, dtype={"year": str, "exit_day": str}) if f.exists() else pd.DataFrame(columns=["symbol", "exit_day", "year", "pct"])
+    start = (meta or {}).get("start_date") or "9999"
+    parts = [_BT[_BT.exit_day < start][["symbol", "exit_day", "year", "pct"]].assign(src="2015-2026 test")]
+    for name, src in (("trades.csv", "paper trade"), ("would_have.csv", "would have")):
+        f = Path(sd) / name if sd else None
+        if f is not None and f.exists() and f.stat().st_size > 5:
+            x = pd.read_csv(f)
+            if len(x):
+                d = x.sell_date.astype(str)
+                parts.append(pd.DataFrame(dict(symbol=x.symbol, exit_day=d, year=d.str[:4], pct=x.pnl_pct_position.astype(float), src=src)))
+    return pd.concat(parts, ignore_index=True)
+
+
+def block_check(rec, symbol, day, n_years=None):
+    """(blocked, why). Blocked = traded in at least n_years different years (settings block_losing_years, 3) and lost money in
+    every one of them, counting only results known before `day`. One profitable year (a paper trade, or a 'would have' trade
+    while blocked) lifts the block. Tested on 2015-2026 with only the past known at each trade: the 84 trades it blocked lost
+    Rs 1.13 lakh in total (38% won), and Rs 5 lakh did better with it in 10 of 12 starting years."""
+    n_years = n_years or SET().get("block_losing_years") or 3
+    g = rec[(rec.symbol == symbol) & (rec.exit_day < day)]
+    if not len(g):
+        return False, ""
+    yr = g.groupby("year").pct.sum()
+    if len(yr) >= n_years and bool((yr < 0).all()):
+        return True, (f"lost money in every year it was traded ({len(yr)} years: " + ", ".join(f"{y} {v:+.1f}%" for y, v in yr.items())
+                      + "); followed on paper, and one profitable year lifts the block")
+    return False, ""
+
+
+def block_list(rec, day, n_years=None):
+    """All stocks blocked as of `day` (for the dashboard)."""
+    out = []
+    for sym, g in rec[rec.exit_day < day].groupby("symbol"):
+        if block_check(g, sym, day, n_years)[0]:
+            yr = g.groupby("year").pct.sum()
+            out.append(dict(symbol=sym, years=len(yr), trades=len(g), total_pct=round(float(g.pct.sum()), 1), last_year=str(yr.index.max()),
+                            by_year=", ".join(f"{y}: {v:+.1f}%" for y, v in yr.items())))
+    return sorted(out, key=lambda r: (-r["years"], r["total_pct"]))
+
+
 def update_quarter(today, meta, pos):
     """Per-share limit = 10% of capital at the start of each quarter (Jan/Apr/Jul/Oct), unless paper/settings.json sets
     "fixed_limit" (the live paper test keeps Rs 50,000 throughout). Tests of past data pass --start and ignore the fixed limit."""
@@ -319,7 +375,9 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
     CA = corp_actions(today)
     divs = CA[(CA["div"] > 0) & (CA.ex > today) & (CA.ex <= tdays(today, 25))].copy() if len(CA) else pd.DataFrame()
     if not len(divs):
-        return [], []
+        return [], [], []
+    rec = track_record(STATE_DIR, meta) if SET().get("block_losing_years") else None
+    follow = []                                  # qualifying dividends not bought today: followed on paper ('would have')
     other = CA[~CA.subject.str.contains("ivid", case=False, na=False)]
     ann = announcements(today, set(divs.symbol))
     shares = pd.read_csv(ROOT / "paper/lists/shares.csv").set_index("symbol").shares
@@ -367,19 +425,25 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
         if buy_day > tdays(X, -2):
             reasons.append("record date announced too late")
         st["reason"] = "; ".join(reasons)
+        blocked, why_blocked = block_check(rec, s, today.isoformat()) if (rec is not None and not reasons and s not in held) else (False, "")
+        entry = lambda: dict(symbol=s, isin=ISIN.get(s), y=y, med_value=float(win.value_cr.median()) * 1e7,
+                             sigma=float(np.nanstd((win.close / win.prev_close - 1).tail(20))) or 0.03, ex=X.isoformat(), cum=C.isoformat(),
+                             dividend_pct=st["dividend_pct"], mcap_cr=st["mcap_cr"], signal=st, tier=1 if mc <= RULES["MAX_MCAP"] else 2)
         if reasons:
             st["status"] = "skip"
         elif s in held:
             st["status"] = "holding"
+        elif blocked:                            # lost money in every year traded: not bought, but followed on paper
+            st["status"], st["reason"] = "blocked", why_blocked
+            if buy_day == today:
+                follow.append(dict(entry(), why="blocked (lost money in every year traded)"))
         elif buy_day > today:
             st["status"] = "waiting for buy day"
         elif buy_day < today:
             st["status"] = "buy day passed"
         else:
             st["status"] = "buy today"
-            sig = float(np.nanstd((win.close / win.prev_close - 1).tail(20))) or 0.03
-            due.append(dict(symbol=s, isin=ISIN.get(s), y=y, med_value=float(win.value_cr.median()) * 1e7, sigma=sig, ex=X.isoformat(), cum=C.isoformat(),
-                            dividend_pct=st["dividend_pct"], mcap_cr=st["mcap_cr"], signal=st, tier=1 if mc <= RULES["MAX_MCAP"] else 2))
+            due.append(entry())
         if np.isfinite(mc):
             st["range"] = "500-2,500 cr (priority)" if mc <= RULES["MAX_MCAP"] else "2,500-8,000 cr (idle money)"
         rows.append(st)
@@ -396,20 +460,25 @@ def evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN):
         V = min(limit / mfrac, RULES["PARTICIPATION"] * b["med_value"])
         if V < 10000:
             b["signal"].update(status="skip", reason="too small"); continue
-        if V * mfrac > cash_left:
-            b["signal"].update(status="skip", reason="capital busy"); continue
-        if b["tier"] == 2 and V * mfrac + reserve > cash_left:
-            b["signal"].update(status="skip", reason=f"keeping 20% of the account (Rs {reserve:,.0f}) free for Rs 500-2,500 cr dividends"); continue
-        if cap_x and exposure + V > cap_x * account:
-            b["signal"].update(status="skip", reason=f"all positions would exceed {cap_x:g}x the account (Rs {cap_x * account:,.0f})"); continue
+        b.update(broker=broker, mfrac=mfrac, target=V)
+        no_room = ("capital busy" if V * mfrac > cash_left else
+                   f"keeping 20% of the account (Rs {reserve:,.0f}) free for Rs 500-2,500 cr dividends" if b["tier"] == 2 and V * mfrac + reserve > cash_left else
+                   f"all positions would exceed {cap_x:g}x the account (Rs {cap_x * account:,.0f})" if cap_x and exposure + V > cap_x * account else None)
+        if no_room:
+            b["signal"].update(status="skip", reason=no_room)
+            follow.append(dict(b, why=f"no room: {no_room}")); continue
         cash_left -= V * mfrac
         exposure += V
-        b.update(broker=broker, mfrac=mfrac, target=V)
         buys.append(b)
-    return rows, buys
+    for b in follow:                             # size a blocked stock's paper trade the same way as a real one
+        if "broker" not in b:
+            broker, mfrac = broker_for(b["symbol"], kite, ups, groww)
+            limit = meta["limit"] * (2 if (broker == "Cash" and b["y"] >= RULES["BIG_YIELD"]) else 1)
+            b.update(broker=broker, mfrac=mfrac, target=min(limit / mfrac, RULES["PARTICIPATION"] * b["med_value"]))
+    return rows, buys, follow
 
 
-def open_position(b, avg_px, qty, today, meta, buy_impact=0.0, mode="1-minute candles"):
+def open_position(b, avg_px, qty, today, meta, buy_impact=0.0, mode="1-minute candles", quiet=False):
     V = qty * avg_px
     margin = V * b["mfrac"]
     meta["cash"] -= margin
@@ -417,7 +486,8 @@ def open_position(b, avg_px, qty, today, meta, buy_impact=0.0, mode="1-minute ca
              avg_cost=round(avg_px, 2), qty=qty, position=V, margin=margin, sigma=b["sigma"], buy_impact=buy_impact, dividend_pct=b["dividend_pct"],
              mcap_cr=b["mcap_cr"], stop=round(avg_px * (1 - RULES["STOP"]), 2), buy_mode=mode, buy_orders=RULES["ORDERS"], tier=b.get("tier", 1),
              dividend_rs=b.get("dividend") or (b.get("signal") or {}).get("dividend"))
-    log(f"BUY {p['symbol']} ({p['broker']}) at {avg_px:.2f}, position Rs {V:,.0f}, margin Rs {margin:,.0f}, sell on {p['sell_date']}, stop {p['stop']} [{mode}]")
+    if not quiet:
+        log(f"BUY {p['symbol']} ({p['broker']}) at {avg_px:.2f}, position Rs {V:,.0f}, margin Rs {margin:,.0f}, sell on {p['sell_date']}, stop {p['stop']} [{mode}]")
     return p
 
 
@@ -429,7 +499,7 @@ def add_to_position(p, qty, px, meta):
     p["avg_cost"] = round(p["position"] / p["qty"], 2); p["stop"] = round(p["avg_cost"] * (1 - RULES["STOP"]), 2)
 
 
-def close_position(p, exit_px, how, today, meta, trades, n_sell_orders=2, day_value=None, mode="1-minute candles"):
+def close_position(p, exit_px, how, today, meta, trades, n_sell_orders=2, day_value=None, mode="1-minute candles", quiet=False):
     """Sell the whole position at exit_px (average if sold in slices). day_value given = add the modelled price impact (no live order book)."""
     sell_val = p["qty"] * exit_px
     days = (today - date.fromisoformat(p["buy_date"])).days
@@ -446,8 +516,33 @@ def close_position(p, exit_px, how, today, meta, trades, n_sell_orders=2, day_va
                margin=round(p["margin"]), charges=round(ch + intr), impact=round((p.get("buy_impact", 0.0) + imp) * p["position"]), pnl=round(pnl),
                pnl_pct_position=round(100 * pnl / p["position"], 2), pnl_pct_margin=round(100 * pnl / p["margin"], 2), days=days, ex_date=p["ex_date"],
                buy_mode=p.get("buy_mode", "1-minute candles"), sell_mode=mode, tier=p.get("tier", 1), dividend_received=round(div_rcv))
-    log(f"SELL {p['symbol']} at {exit_px:.2f} ({how}): P&L Rs {pnl:,.0f} ({row['pnl_pct_margin']:+.1f}% on margin) [{mode}]")
+    if not quiet:
+        log(f"SELL {p['symbol']} at {exit_px:.2f} ({how}): P&L Rs {pnl:,.0f} ({row['pnl_pct_margin']:+.1f}% on margin) [{mode}]")
     return pd.concat([trades, pd.DataFrame([row])], ignore_index=True)
+
+
+def daily_exit(p, r, day):
+    """Exit on the day's prices (9 pm backup, and 'would have' trades): (price or None, reason, kept at the upper circuit)."""
+    exit_px, how = None, None
+    stop = p["avg_cost"] * (1 - RULES["STOP"])
+    if day > p["buy_date"]:
+        if r.open <= stop:
+            exit_px, how = r.open * 0.998, "10% stop (gap)"
+        elif r.low <= stop:
+            exit_px, how = stop * 0.998, "10% stop"
+    if day == p["sell_date"]:                              # last cum day: closed at the upper circuit -> keep it
+        upper = r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
+    else:                                                  # later days: keep it only if locked up all day again
+        upper = day > p["sell_date"] and bool(p.get("upper_hold")) and r.high <= r.low * 1.001 and r.close > r.prev_close * 1.01
+    if exit_px is None and upper:
+        p["upper_hold"] = day
+        return None, None, True
+    if exit_px is None and day >= p["sell_date"]:
+        if day == p["sell_date"]:
+            exit_px, how = r.close * 0.9995, "last cum day close"
+        else:                                              # sold at the start of the morning, like the live bot (9:20 am)
+            exit_px, how = r.open * 0.998, ("morning after an upper circuit (with dividend)" if p.get("upper_hold") else "late sale (missed last cum day)")
+    return exit_px, how, False
 
 
 # ---------------------------------------------------------------- the day, after the close
@@ -487,26 +582,10 @@ def run(today, sd, start=None):
         if w.get("date") == today.isoformat() and w.get("minutes", 0) >= 360:
             keep.append(p); continue
         r = T.loc[p["symbol"]]
-        exit_px, how = None, None
-        stop = p["avg_cost"] * (1 - RULES["STOP"])
-        if today.isoformat() > p["buy_date"]:
-            if r.open <= stop:
-                exit_px, how = r.open * 0.998, "10% stop (gap)"
-            elif r.low <= stop:
-                exit_px, how = stop * 0.998, "10% stop"
         day = today.isoformat()
-        if day == p["sell_date"]:                              # last cum day: closed at the upper circuit -> keep it
-            upper = r.close >= r.high * 0.999 and r.close >= r.prev_close * 1.049
-        else:                                                  # later days: keep it only if locked up all day again
-            upper = day > p["sell_date"] and bool(p.get("upper_hold")) and r.high <= r.low * 1.001 and r.close > r.prev_close * 1.01
-        if exit_px is None and upper:
-            p["upper_hold"] = day
+        exit_px, how, held_up = daily_exit(p, r, day)
+        if held_up:
             log(f"{p['symbol']}: {'closed at the upper circuit on its last cum day' if day == p['sell_date'] else 'locked at the upper circuit again'}; held one more day (dividend will be received)")
-        if exit_px is None and day >= p["sell_date"] and not upper:
-            if day == p["sell_date"]:
-                exit_px, how = r.close * 0.9995, "last cum day close"
-            else:                                              # sold at the start of the morning, like the live bot (9:20 am)
-                exit_px, how = r.open * 0.998, ("morning after an upper circuit (with dividend)" if p.get("upper_hold") else "late sale (missed last cum day)")
         if exit_px is None:
             keep.append(p); continue
         sold = p.get("selling") or {}
@@ -517,13 +596,32 @@ def run(today, sd, start=None):
             alert(sd, f"{p['symbol']}: the live trader did not {'sell' if 'stop' not in how else 'apply the stop to'} it today, so the 9 pm backup sold it on daily prices ({how}, {exit_px:.2f}).")
     pos = keep
 
+    # ---- 1b. 'would have' trades: followed on paper only, never in the account; same exits as real positions
+    wf, wc = sd / "would_have_open.json", sd / "would_have.csv"
+    wh = json.loads(wf.read_text()) if wf.exists() and wf.stat().st_size > 2 else []
+    whc = pd.read_csv(wc) if wc.exists() and wc.stat().st_size > 5 else pd.DataFrame()
+    still = []
+    for w in wh:
+        if w["symbol"] not in T.index:
+            still.append(w); continue
+        r = T.loc[w["symbol"]]
+        exit_px, how, _ = daily_exit(w, r, today.isoformat())
+        if exit_px is None:
+            still.append(w); continue
+        whc = close_position(w, exit_px, how, today, dict(cash=0.0), whc, n_sell_orders=1 if "stop" in how else 2, day_value=r.value_cr * 1e7,
+                             mode="would have (1-minute candles)", quiet=True)
+        whc.loc[whc.index[-1], "why_not_bought"] = w.get("why_not_bought")
+        log(f"WOULD HAVE: {w['symbol']} sold at {exit_px:.2f} ({how}), {whc.iloc[-1].pnl_pct_position:+.2f}% on the position (paper only, not in the account)")
+    wh = still
+
     # ---- 2. signals and buys (a dividend the live trader already tried today is not bought again here)
-    sig_rows, buys = evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN)
+    sig_rows, buys, follow = evaluate_signals(today, H, T, meta, pos, kite, ups, groww, ISIN)
     for b in buys:
         st = b["signal"]
         lb = live_plan.get(b["symbol"])
         if lb and lb["status"] != "open":
-            st.update(status="skip", reason=f"live trader: {lb.get('note') or lb['status']}"); continue
+            st.update(status="skip", reason=f"live trader: {lb.get('note') or lb['status']}")
+            follow.append(dict(b, why=f"live trader could not buy it ({lb.get('note') or lb['status']})")); continue
         if not started:
             continue
         r = T.loc[b["symbol"]]
@@ -538,6 +636,29 @@ def run(today, sd, start=None):
         if recent:
             alert(sd, f"{b['symbol']}: the live trader did not buy it today, so the 9 pm backup bought it on 1-minute candles at {px:.2f}.")
         st["status"] = "bought"
+
+    # ---- 2b. follow every qualifying dividend that was not bought (blocked stock, no room, live trader could not fill) on paper,
+    #          with the same buying and selling rules, so each stock's track record stays complete. Never touches the account.
+    have = {w["symbol"] for w in wh} | {p["symbol"] for p in pos}
+    for b in follow:
+        if not started or b["symbol"] in have or not b.get("isin") or b["symbol"] not in T.index:
+            continue
+        r = T.loc[b["symbol"]]
+        px = calm_average(b["isin"], today, prev_day, today, r.vwap)
+        V = min(b["target"], RULES["PARTICIPATION"] * r.value_cr * 1e7)
+        if not np.isfinite(px) or V < 10000:
+            continue
+        w = open_position(b, px, V / px, today, dict(cash=0.0), buy_impact=RULES["IMPACT_Y"] * b["sigma"] * math.sqrt(V / max(r.value_cr * 1e7, 1)),
+                          mode="would have (1-minute candles)", quiet=True)
+        w["why_not_bought"] = b.get("why")
+        wh.append(w); have.add(b["symbol"])
+        log(f"WOULD HAVE: {b['symbol']} followed on paper from {px:.2f} ({b.get('why')}); it is not in the account")
+    for w in wh:                                           # mark at today's close for the dashboard
+        if w["symbol"] in T.index:
+            w["last_close"] = float(T.loc[w["symbol"]].close); w["unrealized"] = round(w["qty"] * w["last_close"] - w["position"], 0)
+    wf.write_text(json.dumps(wh, indent=1, default=str)); whc.to_csv(wc, index=False)
+    if SET().get("block_losing_years"):
+        (sd / "blocked.json").write_text(json.dumps(block_list(track_record(sd, meta), (today + timedelta(days=1)).isoformat()), indent=1))
     signals = pd.DataFrame(sig_rows)
 
     # ---- 3. equity (open positions marked at today's official close)

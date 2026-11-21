@@ -116,6 +116,15 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     <details><summary>Skipped dividends and why</summary><div id="skipped" style="margin-top:10px"></div></details>
   </section>
 
+  <section id="blocked-s">
+    <h2>Blocked stocks</h2>
+    <p class="muted">Stocks that lost money in every year they were traded (at least 3 different years, from 2015). The bot does not buy them, but follows each of their dividends on paper with the same rules. One profitable year takes a stock off this list automatically.</p>
+    <div id="blocked"></div>
+    <h3 style="margin-top:18px">Would-have trades</h3>
+    <p class="muted">Dividends that passed every rule but were not bought (blocked stock, no room left in the account, or the live trader could not fill), followed on paper. They never touch the account; they keep every stock's record complete, which is how a blocked stock gets back on the list.</p>
+    <div id="wouldhave"></div>
+  </section>
+
   <section id="months">
     <h2>Month by month</h2>
     <div class="chart" id="m-chart" style="min-height:200px"></div>
@@ -150,6 +159,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       <li>Buying: 5 slices (9:30, 10:30, 11:30 am, 12:45 and 2:00 pm), each only in a calm minute (no volume spike). Each paper order takes only the shares really offered at that second within 1% of the best offer (up to 30 levels of the Upstox order book), at those offers' prices, and the total never exceeds 10% of the shares traded so far that day. What the book can't take is bought in later orders (at most 12 per stock); anything not bought by 3 pm is dropped.</li>
       <li>Selling: on the last cum day, half from 3:05 pm and the rest from 3:20 pm, every 30 seconds, each order taking only the shares really bid for within 1% of the best bid. Anything the bids still can't take at 3:29 pm is counted 1% under the lowest bid shown, and reported. If the stock is locked at its upper circuit on that day (nobody selling), it is kept and sold at 9:20 am the next morning (only if it is locked at the upper circuit again is it kept one more day), and the dividend is counted. A 10% stop-loss below the buy price is watched on every tick from the day after buying.</li>
       <li>Size: ₹50,000 of margin per share for this paper test, fixed throughout; twice that for cash trades with a dividend of 1.5% or more. (The past-data tests used 10% of the account, reset each quarter.) MTF only on stocks in Kite's, Upstox's or Groww's real lists (in that order), otherwise cash. All open positions together are never more than 2× the account.</li>
+      <li>Blocked stocks: a stock that lost money in every year it was traded (at least 3 different years, counting the 2015–2026 test and the paper trades) is not bought. Its dividends are still followed on paper with the same rules, and one profitable year takes it off the list. Tested on 2015–2026 using only what was known at each trade: the 84 blocked trades lost ₹1.13 lakh in total, and ₹5 lakh did better with the rule in 10 of 12 starting years.</li>
       <li>Costs: per-order brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP and pledge charges, and MTF interest. Backup trades on 1-minute candles also carry a price-impact estimate.</li>
       <li>The 9 pm run marks positions at NSE's official close, and trades anything the live trader missed on 1-minute candles. Any problem opens a GitHub issue, which emails the owner.</li>
     </ul>
@@ -339,7 +349,8 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
 
   function signals(D) {
     const s = D.signals || [];
-    const watching = s.filter((r) => r.status !== 'skip'), skipped = s.filter((r) => r.status === 'skip');
+    const out = (r) => r.status === 'skip' || r.status === 'blocked';
+    const watching = s.filter((r) => !out(r)), skipped = s.filter(out);
     table($('signals'), watching, [
       ['Stock', 'symbol', null, { left: true }], ['Ex-date', 'ex_date', (v) => fmtDate(v)], ['Buy day', 'buy_day', (v) => fmtDate(v)],
       ['Sell day', 'last_cum_day', (v) => fmtDate(v)], ['Dividend ₹', 'dividend', (v) => num(v)], ['Dividend %', 'dividend_pct', (v) => num(v)],
@@ -416,6 +427,23 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     });
   }
 
+  function blockedStocks(D) {
+    table($('blocked'), D.blocked || [], [
+      ['Stock', 'symbol', null, { left: true }], ['Years traded', 'years'], ['Trades', 'trades'],
+      ['All trades added up', 'total_pct', (v) => pct(v), { tone: true }], ['Result by year (sum of trades, % of position)', 'by_year', null, { left: true }],
+    ], 'No stock is blocked.');
+    const rows = (D.would_have_open || []).map((r) => Object.assign({}, r, { open: true }))
+      .concat((D.would_have || []).map((r) => Object.assign({}, r, { open: false })));
+    rows.sort((a, b) => String(b.open ? b.buy_date : b.sell_date).localeCompare(String(a.open ? a.buy_date : a.sell_date)));
+    table($('wouldhave'), rows, [
+      ['Stock', 'symbol', null, { left: true }], ['Why not bought', 'why_not_bought', null, { left: true }], ['Bought', 'buy_date', (v) => fmtDate(v)],
+      ['Buy', 'avg_cost', (v) => num(v)], ['Sold', (r) => (r.open ? 'open, sells ' + fmtDate(r.sell_date) : fmtDate(r.sell_date)), null, { left: true }],
+      ['Sell', (r) => (r.open ? r.last_close : r.exit_price), (v) => num(v)], ['Why sold', (r) => (r.open ? 'still held (last close)' : r.exit_reason), null, { left: true }],
+      ['Would have made', (r) => (r.open ? r.unrealized : r.pnl), (v) => inr(v), { tone: true }],
+      ['On position %', (r) => (r.open ? (r.position ? 100 * r.unrealized / r.position : null) : r.pnl_pct_position), (v) => num(v), { tone: true }],
+    ], 'None yet. They appear when a dividend passes every rule but is not bought.');
+  }
+
   function trades(D) {
     const tr = (D.trades || []).slice().sort((a, b) => String(b.sell_date).localeCompare(String(a.sell_date)));
     const how = (r) => { const a = String(r.buy_mode || '').startsWith('live'), b = String(r.sell_mode || '').startsWith('live'); return a && b ? 'live ticks' : a || b ? 'partly live' : '1-minute candles'; };
@@ -443,7 +471,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
   }
 
   let D = null;
-  const render = () => { const S = stats(D); header(D, S); tiles(D, S); today(D); equityChart(D, S); positions(D); signals(D); months(D, S); groups(D); trades(D); bot(D); };
+  const render = () => { const S = stats(D); header(D, S); tiles(D, S); today(D); equityChart(D, S); positions(D); signals(D); blockedStocks(D); months(D, S); groups(D); trades(D); bot(D); };
   fetch('data/dashboard.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then((j) => { D = j; render(); let w = window.innerWidth; window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - w) > 40) { w = window.innerWidth; render(); } }); })
     .catch((e) => { $('status').replaceChildren(el('span', { class: 'pill bad' }, 'The data file did not load (' + e.message + '). Try again in a minute.')); });
