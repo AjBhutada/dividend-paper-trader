@@ -444,6 +444,15 @@ def main():
     feed = Feed()
     tr = Trader(today, sd, meta, pos, trades, plan, feed)
     w = window(a.job, plan, pos, today, cfg)
+    if w is None and a.job == "morning" and hhmm() < "09:05" and nothing_bought(plan):
+        # nothing to buy yet: still take the 9:05 look at the news, so a record date announced before the open is bought live
+        E.log(f"{hhmm()} morning: nothing to buy yet; looking at the news again at 9:05")
+        while hhmm() < "09:05":
+            time.sleep(15)
+        E.FRESH_H = 0.2
+        plan = tr.plan = build_plan(today, meta, pos)
+        E.log(f"{hhmm()} planned again at 9:05 with the newest announcements")
+        w = window(a.job, plan, pos, today, cfg)
     if w is None or hhmm() >= w[1]:
         E.log(f"{hhmm()} {a.job}: nothing needs the live feed in this part of the day.")
         tr.save(); minutes_used(sd, month, (time.time() - t_start) / 60 + 1); return 0
