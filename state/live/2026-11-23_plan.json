@@ -1,0 +1,30 @@
+{
+ "date": "2026-11-23",
+ "made_at": "2026-11-23 08:25",
+ "buys": [],
+ "signals": [
+  {
+   "symbol": "FUSIONCX",
+   "ex_date": "2026-11-27",
+   "last_cum_day": "2026-11-26",
+   "dividend": 0.75,
+   "buy_day": "2026-11-16",
+   "status": "skip",
+   "reason": "market cap unknown (not in the NSE/AMFI share list); dividend 0.262% is below 0.5%",
+   "dividend_pct": 0.26,
+   "mcap_cr": null
+  },
+  {
+   "symbol": "VRAJ",
+   "ex_date": "2026-11-25",
+   "last_cum_day": "2026-11-23",
+   "dividend": 0.6,
+   "buy_day": "2026-11-16",
+   "status": "skip",
+   "reason": "market cap Rs 398 cr, outside 500-8,000 cr; dividend 0.499% is below 0.5%; too little trading",
+   "dividend_pct": 0.5,
+   "mcap_cr": 398,
+   "range": "below 500 cr"
+  }
+ ]
+}
