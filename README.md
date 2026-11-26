@@ -10,7 +10,7 @@ _Updated after the close on 26 Nov 2026. Paper money only: no real orders are pl
 | Equity now | ₹5,00,000 (+0.0%) |
 | Closed trades | 0 |
 | Yearly rate so far | shown after 3 months |
-| Nifty Smallcap 250 since start | -0.2% |
+| Nifty Smallcap 250 since start | +0.4% |
 | Open positions | 0 using ₹0 of margin |
 | Per-share limit this quarter | ₹50,000 (2026Q4) |
 | Backtest expectation | about +2.3% per trade on the position, about 60% winners |
