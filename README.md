@@ -2,7 +2,7 @@
 
 **Dashboard: https://ajbhutada.github.io/dividend-paper-trader/**
 
-_Updated after the close on 26 Nov 2026. Paper money only: no real orders are placed._
+_Updated after the close on 27 Nov 2026. Paper money only: no real orders are placed._
 
 | | |
 |---|---|
