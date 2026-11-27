@@ -10,7 +10,7 @@ _Updated after the close on 27 Nov 2026. Paper money only: no real orders are pl
 | Equity now | ₹5,00,000 (+0.0%) |
 | Closed trades | 0 |
 | Yearly rate so far | shown after 3 months |
-| Nifty Smallcap 250 since start | +0.4% |
+| Nifty Smallcap 250 since start | +0.9% |
 | Open positions | 0 using ₹0 of margin |
 | Per-share limit this quarter | ₹50,000 (2026Q4) |
 | Backtest expectation | about +2.3% per trade on the position, about 60% winners |
@@ -30,9 +30,7 @@ _None yet._
 _None yet._
 
 ## Skipped dividends and why
-| Stock | Ex-date | Dividend % | Mcap (₹ cr) | Why skipped |
-|---|---|---|---|---|
-| FUSIONCX | 2026-11-27 | 0.26 |  | market cap unknown (not in the NSE/AMFI share list); dividend 0.262% is below 0.5% |
+_None yet._
 
 ## Rules in short
 - NSE EQ shares of ₹500–8,000 cr (₹500–2,500 cr first; ₹2,500–8,000 cr only when 20% of the account stays free afterwards) with a dividend of at least 0.5% of the price, at least ₹20 lakh traded a day, no circuit locks, no bonus/split nearby.
